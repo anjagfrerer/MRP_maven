@@ -6,6 +6,10 @@ import model.User;
 
 import java.util.List;
 
+/**
+ * Interface for managing ratings in the repository.
+ * Provides methods to create, edit, delete, and like ratings.
+ */
 public interface IRatingRepository {
     void likeRating(User user, Rating rating);
     void unlikeRating(User user, Rating rating);

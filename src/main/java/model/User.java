@@ -3,6 +3,11 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a user of the application.
+ * A user has an ID, username, password, a list of favorite media,
+ * ratings they created, and an interaction counter for ranking activity.
+ */
 public class User {
     private String userid;
     private String username;
@@ -11,6 +16,13 @@ public class User {
     private List<MediaEntry> favorites;
     private List<Rating> ratings; //!
 
+    /**
+     * Creates a new user with the given data.
+     *
+     * @param id user ID
+     * @param username username
+     * @param password password of the user
+     */
     public User(String id, String username, String password) {
         this.username = username;
         this.password = password;
@@ -22,6 +34,10 @@ public class User {
 
     public User() {
     }
+
+    /**
+     * Getters and Setters
+     */
 
     public String getUserid() {
         return userid;

@@ -5,6 +5,10 @@ import model.User;
 
 import java.util.List;
 
+/**
+ * Interface for managing media entries in the repository.
+ * Defines methods to create, read, update, and delete media entries.
+ */
 public interface IMediaEntryRepository {
     List<MediaEntry> getALlMediaEntries();
 

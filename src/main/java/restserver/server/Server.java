@@ -14,7 +14,17 @@ import service.UserService;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+/**
+ * Sets up and starts the HTTP server.
+ * Registers the user, media entry, and rating handlers.
+ */
 public class Server {
+    /**
+     * Starts the REST server on port 8080.
+     * Initializes repositories, services, and handlers for users, media entries, and ratings.
+     *
+     * @throws IOException if the server fails to start
+     */
     public void start() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 10);
 
@@ -35,7 +45,7 @@ public class Server {
 
         server.createContext("/api/users", userHandler);
         server.createContext("/api/media", mediaEntryHandler);
-        server.createContext("/aoi/ratings", ratingHandler);
+        server.createContext("/api/ratings", ratingHandler);
 
         server.start();
     }

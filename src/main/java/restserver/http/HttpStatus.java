@@ -1,5 +1,9 @@
 package restserver.http;
 
+/**
+ * Represents common HTTP status codes and their messages.
+ * Used to indicate the result of an HTTP request.
+ */
 public enum HttpStatus {
     OK(200, "OK"),
     CREATED(201, "CREATED"),

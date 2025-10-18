@@ -4,6 +4,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents an HTTP request and parses its URL.
+ * Stores the full URL, the path, query parameters, and path parts.
+ */
 public class Request {
     private String urlContent;
     private String pathname;

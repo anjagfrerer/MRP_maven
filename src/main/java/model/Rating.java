@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a rating given by a user to a media entry.
+ * Each rating has stars, a comment, a creator, a date, and a list of likes.
+ */
 public class Rating {
 
     private MediaEntry mediaEntry;
@@ -14,6 +18,15 @@ public class Rating {
     private LocalDateTime localDate;
     private List<User> likes = new ArrayList<>();
 
+    /**
+     * Creates a new rating for a media entry.
+     *
+     * @param id unique id of the rating
+     * @param mediaEntry the media being rated
+     * @param stars number of stars
+     * @param comment optional comment
+     * @param creator the user who created the rating
+     */
     public Rating(String id, MediaEntry mediaEntry, int stars, String comment, User creator) {
         this.id = id;
         this.mediaEntry = mediaEntry;
@@ -22,6 +35,10 @@ public class Rating {
         this.creator = creator;
         this.localDate = null;
     }
+
+    /**
+     * Getters and Setters
+     */
 
     public MediaEntry getMediaEntry() {
         return mediaEntry;

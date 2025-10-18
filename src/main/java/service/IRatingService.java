@@ -3,6 +3,10 @@ package service;
 import model.MediaEntry;
 import model.User;
 
+/**
+ * Service interface for managing ratings.
+ * Provides methods to add, edit, delete, like, and unlike ratings.
+ */
 public interface IRatingService {
     void likeRating(User user, String ratingID);
     void unlikeRating(User user, String ratingID);

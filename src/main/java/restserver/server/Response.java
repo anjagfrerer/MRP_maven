@@ -7,6 +7,10 @@ import restserver.http.HttpStatus;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Represents an HTTP response to be sent to the client.
+ * Stores the status code, content type, and response content.
+ */
 public class Response {
     private int status;
     private String contentType;

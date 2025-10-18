@@ -1,5 +1,8 @@
 package restserver.http;
 
+/**
+ * Defines the supported HTTP content types used in responses.
+ */
 public enum ContentType {
     PLAIN_TEXT("text/plain"),
     HTML("text/html"),
