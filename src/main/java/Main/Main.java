@@ -1,4 +1,4 @@
-package model;
+package Main;
 
 import restserver.server.Server;
 
