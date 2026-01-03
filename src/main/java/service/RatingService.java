@@ -1,5 +1,6 @@
 package service;
 
+import dto.RatingHistoryDTO;
 import model.Rating;
 import model.User;
 import persistence.IRatingRepository;
@@ -82,7 +83,7 @@ public class RatingService implements IRatingService {
     }
 
     @Override
-    public List<Rating> getRatingHistory(int userId, User user) {
+    public List<RatingHistoryDTO> getRatingHistory(int userId, User user) {
         if(user==null || userId != user.getUserid()) return null;
         return ratingRepository.getRatingHistory(userId, user);
     }
@@ -90,6 +91,7 @@ public class RatingService implements IRatingService {
     @Override
     public boolean confirmRatingComment(int ratingid, User user) {
         if(user==null) return false;
+        if(ratingRepository.getRatingById(ratingid)==null) return false;
         if(ratingRepository.getRatingById(ratingid).getCreatorId() != user.getUserid()) return false;
         return ratingRepository.confirmRatingComment(ratingid);
     }

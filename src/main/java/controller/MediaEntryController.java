@@ -190,8 +190,32 @@ public class MediaEntryController extends Controller{
             String title = queryParams.get("title");
             String genre = queryParams.get("genre");
             String sortBy = queryParams.get("sortBy");
-
-            List<MediaEntry> list = mediaEntryService.searchAndFilterMediaEntries(title, genre, sortBy);
+            String mediaType = queryParams.get("mediaType");
+            Object releaseYear = queryParams.get("releaseYear");
+            Object ageRestriction = queryParams.get("ageRestriction");
+            Object rating = queryParams.get("rating");
+            List<MediaEntry> list;
+            if(mediaType != null || releaseYear != null || ageRestriction != null || rating != null) {
+                int releaseYearInt = -1;
+                int ageRestrictionInt = -1;
+                int ratingInt = -1;
+                try {
+                    if(queryParams.get("releaseYear") != null) releaseYearInt = Integer.parseInt(queryParams.get("releaseYear"));
+                    if(queryParams.get("ageRestriction") != null) ageRestrictionInt = Integer.parseInt(queryParams.get("ageRestriction"));
+                    if(queryParams.get("rating") != null) ratingInt = Integer.parseInt(queryParams.get("rating"));
+                } catch (NumberFormatException e) {
+                    return new Response(HttpStatus.BAD_REQUEST, ContentType.JSON,
+                            "{ \"error\" : \"Invalid number format in filter parameters\" }");
+                }
+                try {
+                    list = mediaEntryService.fullSearchAndFilterMediaEntries(title, genre, mediaType, releaseYearInt, ageRestrictionInt, ratingInt, sortBy);
+                }catch(NumberFormatException e) {
+                    e.printStackTrace();
+                    list = null;
+                }
+            }else{
+                list = mediaEntryService.searchAndFilterMediaEntries(title, genre, sortBy);
+            }
             if(list!=null) {
                 return new Response(
                         HttpStatus.OK,

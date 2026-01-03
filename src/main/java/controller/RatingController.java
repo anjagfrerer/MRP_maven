@@ -1,6 +1,7 @@
 package controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import dto.RatingHistoryDTO;
 import model.Rating;
 import model.User;
 import restserver.http.ContentType;
@@ -119,7 +120,7 @@ public class RatingController extends Controller{
 
     public Response getRatingHistory(int userId, User user) {
         try {
-            List<Rating> ratings = ratingService.getRatingHistory(userId, user);
+            List<RatingHistoryDTO> ratings = ratingService.getRatingHistory(userId, user);
 
             if(ratings!=null) {
                 return new Response(

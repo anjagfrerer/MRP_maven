@@ -7,6 +7,7 @@ import model.User;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class UserRepository implements IUserRepository {
     @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT userid, username, password, interactions FROM mrp_user";
+        String sql = "SELECT userid, username, password FROM mrp_user";
         try(Connection conn = DatabaseManager.INSTANCE.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
@@ -49,7 +50,6 @@ public class UserRepository implements IUserRepository {
                 user.setUserid(rs.getInt("userid"));
                 user.setUsername(rs.getString("username"));
                 user.setPassword(rs.getString("password"));
-                user.setInteractions(rs.getInt("interactions"));
                 users.add(user);
             }
         }catch (SQLException e) {
@@ -68,8 +68,8 @@ public class UserRepository implements IUserRepository {
     @Override
     public boolean createUser(User user) {
         String userSql =
-                "INSERT INTO mrp_user (username, password, interactions) " +
-                        "VALUES (?, ?, DEFAULT)";
+                "INSERT INTO mrp_user (username, password) " +
+                        "VALUES (?, ?)";
 
         String profileSql =
                 "INSERT INTO profile (email, userid) VALUES (?, ?)";
@@ -104,7 +104,7 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public User getUserByUsername(String username) {
-        String sql = "SELECT userid, username, password, interactions FROM mrp_user WHERE username = ?";
+        String sql = "SELECT userid, username, password FROM mrp_user WHERE username = ?";
         try(Connection conn = DatabaseManager.INSTANCE.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
@@ -115,7 +115,6 @@ public class UserRepository implements IUserRepository {
                     user.setUserid(rs.getInt("userid"));
                     user.setUsername(rs.getString("username"));
                     user.setPassword(rs.getString("password"));
-                    user.setInteractions(rs.getInt("interactions"));
                     return user;
                 }
             }
@@ -128,7 +127,7 @@ public class UserRepository implements IUserRepository {
 
     @Override
     public Profile getProfile(int userId) {
-        String sql = "SELECT p.profileid, u.username, p.email, p.favoritegenre, p.totalratings, AVG(r.stars) AS avg_score FROM mrp_user u LEFT JOIN profile p ON u.userid = p.userid LEFT JOIN rating r ON u.userid = r.creator WHERE u.userid = ? GROUP BY p.profileid, u.userid, p.email, p.favoritegenre, p.totalratings, p.avgscore";
+        String sql = "SELECT p.profileid, u.username, p.email, p.favoritegenre, COUNT(r.ratingid) AS totalratings, AVG(r.stars) AS avg_score FROM mrp_user u LEFT JOIN profile p ON u.userid = p.userid LEFT JOIN rating r ON u.userid = r.creator WHERE u.userid = ? GROUP BY p.profileid, u.userid, p.email, p.favoritegenre, p.totalratings, p.avgscore";
         try(Connection conn = DatabaseManager.INSTANCE.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -199,5 +198,19 @@ public class UserRepository implements IUserRepository {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public List<Profile> getLeaderboard() {
+        List<Profile> leaderboard = new ArrayList<>();
+        List<User> users = getAllUsers();
+        for (User user : users) {
+            Profile profile = getProfile(user.getUserid());
+            if (profile != null) {
+                leaderboard.add(profile);
+            }
+        }
+        leaderboard.sort((p1, p2) -> Integer.compare(p2.getTotalRatings(), p1.getTotalRatings()));
+        return leaderboard;
     }
 }

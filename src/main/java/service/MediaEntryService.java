@@ -139,12 +139,12 @@ public class MediaEntryService implements IMediaEntryService {
         if (title != null && !title.isBlank()) filters.put("title", title);
         if (genre != null && !genre.isBlank()) filters.put("genre", genre);
         if (mediaType != null && !mediaType.isBlank()) filters.put("mediaType", mediaType);
-        if (releaseYear > 0) filters.put("releaseYear", releaseYear);
-        if (ageRestriction > 0) filters.put("ageRestriction", ageRestriction);
+        if (releaseYear >= 0) filters.put("releaseYear", releaseYear);
+        if (ageRestriction >= 0) filters.put("ageRestriction", ageRestriction);
 
         List<MediaEntry> entries = mediaEntryRepository.fullSearchAndFilterMediaEntries(filters, sortBy);
 
-        if (minRating > 0) {
+        if (minRating >= 0) {
             entries = entries.stream()
                     .filter(m -> m.getAvgscore() >= minRating)
                     .toList();

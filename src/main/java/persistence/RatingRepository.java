@@ -1,7 +1,9 @@
 package persistence;
 
 import database.DatabaseManager;
+import dto.RatingHistoryDTO;
 import model.MediaEntry;
+import model.Profile;
 import model.Rating;
 import model.User;
 
@@ -45,9 +47,13 @@ public class RatingRepository implements IRatingRepository {
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, user.getUserid());
             ps.setInt(2, ratingid);
-            return ps.executeUpdate() == 1;
+            ps.executeUpdate();
+            return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            if ("23503".equals(e.getSQLState())) {
+                // FK violation: Rating existiert nicht
+                return false;
+            }
             return false;
         }
     }
@@ -81,12 +87,13 @@ public class RatingRepository implements IRatingRepository {
 
     @Override
     public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
-        String sql = "UPDATE rating SET stars = ?, comment = ? WHERE mediaentryid = ?";
+        String sql = "UPDATE rating SET stars = ?, comment = ? WHERE mediaentryid = ? AND creator = ?";
         try (Connection connection = DatabaseManager.INSTANCE.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, stars);
             ps.setString(2, comment);
             ps.setInt(3, mediaentryid);
+            ps.setInt(4, user.getUserid());
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,25 +102,27 @@ public class RatingRepository implements IRatingRepository {
     }
 
     @Override
-    public List<Rating> getRatingHistory(int userId, User user) {
-        List<Rating> ratings = new ArrayList<>();
-        String sql = "SELECT r.*, COUNT(l.ratingid) AS likes FROM rating r LEFT JOIN likes l ON r.ratingid = l.ratingid WHERE r.creator = ? AND r.confirmed = true GROUP BY r.ratingid, mediaentryid, creator, stars, comment, created_at";
+    public List<RatingHistoryDTO> getRatingHistory(int userId, User user) {
+        List<RatingHistoryDTO> ratings = new ArrayList<>();
+        String sql = "SELECT r.ratingid, r.stars, r.comment, r.created_at, COUNT(l.ratingid) AS likes, m.mediaentryid, m.title, m.media_type FROM rating r JOIN mediaentry m ON r.mediaentryid = m.mediaentryid LEFT JOIN likes l ON r.ratingid = l.ratingid WHERE r.creator = ? AND r.confirmed = true GROUP BY r.ratingid, r.stars, r.comment, r.created_at, m.mediaentryid, m.title, m.media_type";
         try(Connection conn = DatabaseManager.INSTANCE.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Rating rating = new Rating();
-                rating.setId(rs.getInt("ratingid"));
-                rating.setCreator(rs.getInt("creator"));
+                RatingHistoryDTO rating = new RatingHistoryDTO();
                 rating.setStars(rs.getInt("stars"));
                 rating.setComment(rs.getString("comment"));
-                rating.setLocalDate(rs.getTimestamp("created_at").toLocalDateTime());
                 rating.setLikes(rs.getInt("likes"));
+                rating.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                rating.setMediaEntryId(rs.getInt("mediaentryid"));
+                rating.setMediaTitle(rs.getString("title"));
+                rating.setMediaType(rs.getString("media_type"));
                 ratings.add(rating);
             }
         }catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
         return ratings;
     }

@@ -1,5 +1,6 @@
 package restserver.server;
 import com.sun.net.httpserver.HttpServer;
+import handler.LeaderboardHandler;
 import handler.MediaEntryHandler;
 import handler.RatingHandler;
 import handler.UserHandler;
@@ -7,6 +8,7 @@ import persistence.IUserRepository;
 import persistence.MediaEntryRepository;
 import persistence.RatingRepository;
 import persistence.UserRepository;
+import service.LeaderboardService;
 import service.MediaEntryService;
 import service.RatingService;
 import service.UserService;
@@ -42,9 +44,15 @@ public class Server {
         UserService userservice = UserService.getInstance(userRepository);
         UserHandler userHandler = new UserHandler(userservice, ratingService, mediaEntryService);
 
+        // Leaderboard Setup
+        LeaderboardService leaderboardService = LeaderboardService.getInstance(userRepository);
+        LeaderboardHandler leaderboardHandler = new LeaderboardHandler(leaderboardService);
+
         server.createContext("/api/users", userHandler);
         server.createContext("/api/media", mediaEntryHandler);
         server.createContext("/api/ratings", ratingHandler);
+        server.createContext("/api/leaderboard", leaderboardHandler);
+
 
         server.start();
     }

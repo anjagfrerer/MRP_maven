@@ -20,4 +20,6 @@ public interface IUserRepository {
     List<MediaEntry> getFavorites(int userId);
 
     boolean updateProfile(int userId, String email, String favoritegenre);
+
+    List<Profile> getLeaderboard();
 }

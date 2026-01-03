@@ -10,14 +10,13 @@ DROP TABLE IF EXISTS likes CASCADE;
 CREATE TABLE mrp_user (
     userid SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    interactions INTEGER DEFAULT 0
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE profile (
     profileid SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    favoritegenre VARCHAR(255),
+    favoritegenre VARCHAR(255) DEFAULT '//no favorite genre yet',
     totalratings INTEGER DEFAULT 0,
     avgscore INTEGER DEFAULT 0,
     userid INT REFERENCES mrp_user(userid) ON DELETE CASCADE
