@@ -1,9 +1,11 @@
 package service;
 
-import model.MediaEntry;
 import model.Rating;
 import model.User;
 import persistence.IRatingRepository;
+import persistence.RatingRepository;
+
+import java.util.List;
 
 
 /**
@@ -41,11 +43,9 @@ public class RatingService implements IRatingService {
      * @param ratingID the ID of the rating to like
      */
     @Override
-    public void likeRating(User user, String ratingID) {
-        Rating rating = this.ratingRepository.getRatingByID(ratingID);
-        if (rating != null) {
-            this.ratingRepository.likeRating(user, rating);
-        }
+    public boolean likeRating(int ratingid, User user) {
+        if(user == null) return false;
+        return this.ratingRepository.likeRating(ratingid, user);
     }
 
     /**
@@ -54,41 +54,12 @@ public class RatingService implements IRatingService {
      * @param user the user who unlikes the rating
      * @param ratingID the ID of the rating to unlike
      */
-    @Override
-    public void unlikeRating(User user, String ratingID) {
-        Rating rating = this.ratingRepository.getRatingByID(ratingID);
-        if (rating != null) {
-            this.ratingRepository.unlikeRating(user, rating);
-        }
-    }
-
-    /**
-     * Edits an existing ratings stars and comment.
-     *
-     * @param ratingID the ID of the rating to edit
-     * @param stars new number of stars
-     * @param comment new text
-     */
-    @Override
-    public void editRating(String ratingID, int stars, String comment) {
-        Rating rating = this.ratingRepository.getRatingByID(ratingID);
-        if (rating != null) {
-            this.ratingRepository.editRating(rating, stars, comment);
-        }
-    }
 
     /**
      * Deletes a rating by its ID.
      *
      * @param ratingID the ID of the rating to delete
      */
-    @Override
-    public void deleteRating(String ratingID) {
-        Rating rating = this.ratingRepository.getRatingByID(ratingID);
-        if (rating != null) {
-            this.ratingRepository.deleteRating(rating);
-        }
-    }
 
     /**
      * Adds a new rating for a media entry.
@@ -99,7 +70,27 @@ public class RatingService implements IRatingService {
      * @param mediaEntry the media entry being rated
      */
     @Override
-    public void addRating(User user, int stars, String comment, MediaEntry mediaEntry) {
-        this.ratingRepository.createRating(user, stars, comment, mediaEntry);
+    public boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user) {
+        if(user == null || stars <= 0 || stars > 5 || comment.isEmpty()) return false;
+        return this.ratingRepository.rateMediaEntry(mediaentryid, stars, comment, user);
+    }
+
+    @Override
+    public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
+        if(user == null || stars <= 0 || stars > 5 || comment.isEmpty()) return false;
+        return this.ratingRepository.updateRating(mediaentryid, stars, comment, user);
+    }
+
+    @Override
+    public List<Rating> getRatingHistory(int userId, User user) {
+        if(user==null || userId != user.getUserid()) return null;
+        return ratingRepository.getRatingHistory(userId, user);
+    }
+
+    @Override
+    public boolean confirmRatingComment(int ratingid, User user) {
+        if(user==null) return false;
+        if(ratingRepository.getRatingById(ratingid).getCreatorId() != user.getUserid()) return false;
+        return ratingRepository.confirmRatingComment(ratingid);
     }
 }

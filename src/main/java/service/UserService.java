@@ -1,5 +1,7 @@
 package service;
 
+import model.MediaEntry;
+import model.Profile;
 import model.User;
 import persistence.IUserRepository;
 
@@ -51,7 +53,7 @@ public class UserService implements IUserService {
     public boolean login(String username, String password) {
         if (checkPassword(username, password)) {
             User found = userRepository.getUserByUsername(username);
-            //To be able to check later whether a token is valid, you need a mapping from Token --> User
+            // check whether a token is valid, you need a mapping from Token --> User
             String token = generateToken(found);
             activeTokens.put(token, found);
             loggedInUsers.add(found);
@@ -77,8 +79,13 @@ public class UserService implements IUserService {
                 return false;
             }
         }
-        userRepository.createUser(username, password);
-        return true;
+        User newUser = new User(username, password);
+        boolean created = userRepository.createUser(newUser);
+        if (created) {
+            String token = generateToken(newUser);
+            activeTokens.put(token, newUser);
+        }
+        return created;
     }
 
     /**
@@ -130,5 +137,21 @@ public class UserService implements IUserService {
         return activeTokens.get(token);
     }
 
+    @Override
+    public Profile getProfile(int userId, User user) {
+        if (user == null) return null;
+        return userRepository.getProfile(userId);
+    }
 
+    @Override
+    public List<MediaEntry> getFavorites(int userId, User user) {
+        if (user == null) return null;
+        return userRepository.getFavorites(userId);
+    }
+
+    @Override
+    public boolean updateProfile(int userId, String email, String favoritegenre, User user) {
+        if (user == null || user.getUserid() != userId) return false;
+        return userRepository.updateProfile(userId, email, favoritegenre);
+    }
 }

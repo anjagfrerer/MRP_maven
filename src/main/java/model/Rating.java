@@ -10,13 +10,12 @@ import java.util.List;
  */
 public class Rating {
 
-    private MediaEntry mediaEntry;
+    private int ratingid;
+    private int creatorid;
     private int stars;
     private String comment;
-    private String id;
-    private User creator;
     private LocalDateTime localDate;
-    private List<User> likes = new ArrayList<>();
+    private int likes;
 
     /**
      * Creates a new rating for a media entry.
@@ -27,26 +26,19 @@ public class Rating {
      * @param comment optional comment
      * @param creator the user who created the rating
      */
-    public Rating(String id, MediaEntry mediaEntry, int stars, String comment, User creator) {
-        this.id = id;
-        this.mediaEntry = mediaEntry;
+    public Rating(int id, int stars, String comment, int creatorid) {
+        this.ratingid = id;
         this.stars = stars;
         this.comment = comment;
-        this.creator = creator;
+        this.creatorid = creatorid;
         this.localDate = null;
     }
+
+    public Rating() {}
 
     /**
      * Getters and Setters
      */
-
-    public MediaEntry getMediaEntry() {
-        return mediaEntry;
-    }
-
-    public void setMediaEntry(MediaEntry mediaEntry) {
-        this.mediaEntry = mediaEntry;
-    }
 
     public int getStars() {
         return stars;
@@ -64,12 +56,12 @@ public class Rating {
         this.comment = comment;
     }
 
-    public User getCreator() {
-        return creator;
+    public int getCreatorId() {
+        return creatorid;
     }
 
-    public void setCreator(User creator) {
-        this.creator = creator;
+    public void setCreator(int creatorid) {
+        this.creatorid = creatorid;
     }
 
     public LocalDateTime getLocalDate() {
@@ -80,19 +72,19 @@ public class Rating {
         this.localDate = localDate;
     }
 
-    public List<User> getLikes() {
+    public int getLikes() {
         return likes;
     }
 
-    public void setLikes(List<User> likes) {
+    public void setLikes(int likes) {
         this.likes = likes;
     }
 
-    public String getId() {
-        return id;
+    public int getId() {
+        return ratingid;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setId(int id) {
+        this.ratingid = id;
     }
 }

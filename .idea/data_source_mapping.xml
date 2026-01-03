@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/database.sql" value="7c31adea-402c-4f4a-809b-c7aa58b2dced" />
+    <file url="file://$PROJECT_DIR$/src/main/java/persistence/MediaEntryRepository.java" value="7c31adea-402c-4f4a-809b-c7aa58b2dced" />
+    <file url="file://$PROJECT_DIR$/src/main/java/persistence/RatingRepository.java" value="7c31adea-402c-4f4a-809b-c7aa58b2dced" />
+    <file url="file://$PROJECT_DIR$/src/main/java/persistence/UserRepository.java" value="7c31adea-402c-4f4a-809b-c7aa58b2dced" />
+  </component>
+</project>

@@ -4,14 +4,17 @@ import model.MediaEntry;
 import model.User;
 import persistence.IMediaEntryRepository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 /**
  * Service class for managing media entries.
  * Provides methods to add, edit, delete, and manage favorite status of media entries.
  */
 public class MediaEntryService implements IMediaEntryService {
+
     private static MediaEntryService instance;
     private final IMediaEntryRepository mediaEntryRepository;
 
@@ -39,71 +42,133 @@ public class MediaEntryService implements IMediaEntryService {
 
     /**
      * Adds a new media entry.
-     *
-     * @param mediaEntry the media entry to add
      */
     @Override
-    public void addMediaEntry(MediaEntry mediaEntry) {
-        mediaEntryRepository.addMediaEntry(mediaEntry);
+    public boolean addMediaEntry(MediaEntry mediaEntry, User user) {
+        if (user == null || mediaEntry == null) return false;
+
+        // Creator ist immer der eingeloggte User
+        mediaEntry.setCreatorId(user.getUserid());
+
+        return mediaEntryRepository.addMediaEntry(mediaEntry);
     }
 
     /**
      * Edits an existing media entry identified by its ID.
-     *
-     * @param mediaEntryId the ID of the media entry to edit
-     * @param title new title
-     * @param description new description
-     * @param mediatype new type
-     * @param genres new list of genres
-     * @param releaseYear new release year
-     * @param agerestriction new age restriction
-     * @param creator the user who owns the media entry
      */
     @Override
-    public void editMediaEntry(String mediaEntryId, String title, String description, String mediatype,
-                               List<String> genres, int releaseYear, int agerestriction, User creator) {
+    public boolean editMediaEntry(int mediaEntryId, MediaEntry updatedEntry, User user) {
+        if (user == null || updatedEntry == null) return false;
 
-        MediaEntry mediaEntry = mediaEntryRepository.getMediaEntryByID(mediaEntryId);
-        if (mediaEntry != null) {
-            mediaEntryRepository.updateMediaEntry(mediaEntryId, title, description, mediatype,
-                    genres, releaseYear, agerestriction, creator);
-        }
+        MediaEntry existing = mediaEntryRepository.getMediaEntryByID(mediaEntryId);
+        if (existing == null) return false; // 404
+
+        // nur Creator darf ändern
+        if (existing.getCreatorId() != user.getUserid()) return false; // 403
+
+        return mediaEntryRepository.updateMediaEntry(
+                mediaEntryId,
+                updatedEntry.getTitle(),
+                updatedEntry.getDescription(),
+                updatedEntry.getMediaType(),
+                updatedEntry.getGenres(),
+                updatedEntry.getReleaseYear(),
+                updatedEntry.getAgeRestriction(),
+                user.getUserid()
+        );
     }
 
     /**
-     * Deletes a media entry by title and type.
-     *
-     * @param title the title of the media entry
-     * @param mediaType the type of the media entry (e.g., movie, series)
+     * Deletes a media entry by id.
      */
     @Override
-    public void deleteMediaEntry(String title, String mediaType) {
-        mediaEntryRepository.deleteMediaEntry(title, mediaType);
+    public boolean deleteMediaEntry(int mediaEntryId, User user) {
+        if (user == null) return false;
+
+        MediaEntry mediaEntry = mediaEntryRepository.getMediaEntryByID(mediaEntryId);
+        if (mediaEntry == null) return false;
+
+        // Nur Creator darf löschen
+        if (mediaEntry.getCreatorId() != user.getUserid()) return false;
+
+        return mediaEntryRepository.deleteMediaEntry(mediaEntryId);
     }
 
     /**
      * Marks a media entry as favorite.
-     *
-     * @param mediaEntryId the ID of the media entry
      */
     @Override
-    public void favoriteMediaEntry(String mediaEntryId) {
+    public boolean favoriteMediaEntry(int mediaEntryId, User user) {
+        if (user == null) return false;
+
         MediaEntry mediaEntry = mediaEntryRepository.getMediaEntryByID(mediaEntryId);
-        if (mediaEntry != null) {
-            mediaEntryRepository.setFavoriteStatus(mediaEntryId, true);
-        }
+        if (mediaEntry == null) return false;
+
+        return mediaEntryRepository.setFavoriteStatus(user.getUserid(), mediaEntryId);
     }
 
     /**
      * Removes a media entry from favorites.
-     *
-     * @param mediaEntryId the ID of the media entry
      */
     @Override
-    public void unFavoriteMediaEntry(String mediaEntryId) {
+    public boolean unFavoriteMediaEntry(int mediaEntryId, User user) {
+        if (user == null) return false;
+
         MediaEntry mediaEntry = mediaEntryRepository.getMediaEntryByID(mediaEntryId);
-        if (mediaEntry != null) {
-            mediaEntryRepository.setFavoriteStatus(mediaEntryId, false);
+        if (mediaEntry == null) return false;
+
+        return mediaEntryRepository.setUnFavoriteStatus(user.getUserid(), mediaEntryId);
+    }
+
+    /**
+     * Returns all media entries.
+     */
+    @Override
+    public List<MediaEntry> getAllMediaEntries() {
+        return mediaEntryRepository.getALlMediaEntries();
+    }
+
+    @Override
+    public List<MediaEntry> searchAndFilterMediaEntries(String title, String genre, String sortBy) {
+        return mediaEntryRepository.searchAndFilterMediaEntries(title, genre, sortBy);
+    }
+
+    @Override
+    public List<MediaEntry> fullSearchAndFilterMediaEntries(String title, String genre, String mediaType, int releaseYear, int ageRestriction, int minRating, String sortBy) {
+        Map<String, Object> filters = new HashMap<>();
+        if (title != null && !title.isBlank()) filters.put("title", title);
+        if (genre != null && !genre.isBlank()) filters.put("genre", genre);
+        if (mediaType != null && !mediaType.isBlank()) filters.put("mediaType", mediaType);
+        if (releaseYear > 0) filters.put("releaseYear", releaseYear);
+        if (ageRestriction > 0) filters.put("ageRestriction", ageRestriction);
+
+        List<MediaEntry> entries = mediaEntryRepository.fullSearchAndFilterMediaEntries(filters, sortBy);
+
+        if (minRating > 0) {
+            entries = entries.stream()
+                    .filter(m -> m.getAvgscore() >= minRating)
+                    .toList();
         }
+
+        return entries;
+    }
+
+    @Override
+    public MediaEntry getMediaEntryById(int mediaEntryID, User user) {
+        return mediaEntryRepository.getMediaEntryByID(mediaEntryID);
+    }
+
+    @Override
+    public List<MediaEntry> getRecommendationByGenre(int userid, User user) {
+        if(user == null) return null;
+        if(userid!=user.getUserid()) return null;
+        return mediaEntryRepository.getRecommendationByGenre(userid);
+    }
+
+    @Override
+    public List<MediaEntry> getRecommendationByContent(int userid, User user) {
+        if(user == null) return null;
+        if(userid!=user.getUserid()) return null;
+        return mediaEntryRepository.getRecommendationByContent(userid);
     }
 }

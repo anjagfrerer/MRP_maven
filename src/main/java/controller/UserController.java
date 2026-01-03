@@ -2,12 +2,17 @@ package controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import model.MediaEntry;
+import model.Profile;
+import model.Rating;
 import model.User;
 import restserver.http.ContentType;
 import restserver.http.HttpStatus;
 import restserver.server.Response;
 import service.IUserService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class UserController extends Controller{
@@ -48,7 +53,8 @@ public class UserController extends Controller{
             boolean success = userService.login(requestUser.getUsername(), requestUser.getPassword());
 
             if(success) {
-                String token = userService.generateToken(requestUser);
+                User user = userService.getUserByUsername(requestUser.getUsername());
+                String token = userService.generateToken(user);
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
@@ -98,6 +104,88 @@ public class UserController extends Controller{
                         HttpStatus.UNAUTHORIZED,
                         ContentType.JSON,
                         getObjectMapper().writeValueAsString(Map.of("error", "Username already exists"))
+                );
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Internal Server Error\" }"
+            );
+        }
+    }
+
+    public Response getProfile(int userId, User user) {
+        try {
+            Profile profile = userService.getProfile(userId, user);
+
+            if(profile!=null) {
+                return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(profile)
+                );
+            }else{
+                return new Response(
+                        HttpStatus.CONFLICT,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                );
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Internal Server Error\" }"
+            );
+        }
+    }
+
+    public Response getFavorites(int userId, User user) {
+        try {
+            List<MediaEntry> favorites = userService.getFavorites(userId, user);
+
+            if(favorites!=null) {
+                return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(favorites)
+                );
+            }else{
+                return new Response(
+                        HttpStatus.CONFLICT,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                );
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Internal Server Error\" }"
+            );
+        }
+    }
+
+    public Response updateProfile(int userId, String requestBody, User user) {
+        try {
+            Profile profile = this.getObjectMapper().readValue(requestBody, Profile.class);
+            boolean success = userService.updateProfile(userId, profile.getEmail(), profile.getFavoriteGenre(), user);
+
+            if(success) {
+                return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("message", "Profile Update successful"))
+                );
+            }else{
+                return new Response(
+                        HttpStatus.CONFLICT,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
                 );
             }
         } catch (JsonProcessingException e) {

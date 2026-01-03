@@ -1,8 +1,12 @@
 package restserver.server;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents an HTTP request and parses its URL.
@@ -61,5 +65,30 @@ public class Request {
 
     private void setPathParts(List<String> pathParts) {
         this.pathParts = pathParts;
+    }
+
+    /**
+     * The method getQueryParams returns the params for postman search & filter
+     * @return
+     */
+    public Map<String, String> getQueryParams(URI uri) {
+        Map<String, String> params = new HashMap<>();
+
+        String query = uri.getRawQuery();
+        if (query == null || query.isBlank()) {
+            return params;
+        }
+
+        for (String pair : query.split("&")) {
+            String[] keyValue = pair.split("=");
+            String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
+            String value = keyValue.length > 1
+                    ? URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8)
+                    : "";
+
+            params.put(key, value);
+        }
+
+        return params;
     }
 }

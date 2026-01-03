@@ -1,6 +1,10 @@
 package service;
 
+import model.MediaEntry;
+import model.Profile;
 import model.User;
+
+import java.util.List;
 
 /**
  * Service interface for managing users and authentication.
@@ -17,4 +21,9 @@ public interface IUserService {
     User getUserByUsername(String username);
     String generateToken(User requestUser);
     User getUserByToken(String token);
+    Profile getProfile(int userId, User user);
+
+    List<MediaEntry> getFavorites(int userId, User user);
+
+    boolean updateProfile(int userId, String email, String favoritegenre, User user);
 }

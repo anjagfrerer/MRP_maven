@@ -2,12 +2,21 @@ package handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import controller.RatingController;
 import model.MediaEntry;
 import model.User;
+import restserver.http.ContentType;
+import restserver.http.HttpStatus;
+import restserver.http.Method;
+import restserver.server.Request;
+import restserver.server.Response;
 import service.IRatingService;
 import service.RatingService;
+import service.UserService;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * RatingHandler is responsible for handling all HTTP requests related to ratings.
@@ -20,74 +29,11 @@ import java.io.IOException;
 
 public class RatingHandler implements HttpHandler {
     private final IRatingService ratingService;
+    private RatingController ratingController;
 
     public RatingHandler(RatingService ratingService) {
         this.ratingService = ratingService;
-    }
-
-    /**
-     * Adds a like to a rating.
-     * This logic will later be moved to the RatingController,
-     * while this handler will only forward the HTTP request.
-     *
-     * @param user the user who likes the rating
-     * @param ratingID the ID of the rating to like
-     */
-    public void likeRating(User user, String ratingID) {
-        this.ratingService.likeRating(user, ratingID);
-    }
-
-    /**
-     * Adds a new rating for a media entry. This will later be done by the RatingController.
-     *
-     * @param user the user who creates the rating
-     * @param stars the number of stars given
-     * @param comment an optional comment
-     * @param mediaEntry the media entry being rated
-     */
-    public void addRating(User user, int stars, String comment, MediaEntry mediaEntry) {
-        if(user != null && mediaEntry != null){
-            this.ratingService.addRating(user, stars, comment, mediaEntry);
-        }
-    }
-
-    /**
-     * Removes a like from a rating. This will later be handled through the RatingController.
-     *
-     * @param user the user who removes the like
-     * @param ratingID the ID of the rating
-     */
-    public void unlikeRating(User user, String ratingID) {
-        this.ratingService.unlikeRating(user, ratingID);
-    }
-
-    /**
-     * Edits an existing rating if valid data is provided. Later, this check and logic will be moved to the RatingController.
-     *
-     * @param mediaEntryID the ID of the related media entry
-     * @param stars the new star value
-     * @param comment the new comment
-     * @param creator the user who created the rating
-     * @param ratingID the ID of the rating to edit
-     */
-    void editRating(String mediaEntryID, int stars, String comment, User creator, String ratingID) {
-        if (!mediaEntryID.isBlank() && creator != null && !ratingID.isBlank()) {
-            // Hier noch checken, ob der User auch wirklich der Creator ist
-            this.ratingService.editRating(ratingID, stars, comment);
-        }
-    }
-
-    /**
-     * Deletes a rating created by a user. Later, this check and logic will be done by the RatingController.
-     *
-     * @param user the user who created the rating
-     * @param mediaEntryID the ID of the media entry
-     */
-    void deleteRating(User user, String mediaEntryID) {
-        if(user != null && !mediaEntryID.isBlank()) {
-            // Hier noch checken, ob der User auch wirklich der Creator ist
-            this.ratingService.deleteRating(mediaEntryID);
-        }
+        this.ratingController = RatingController.getInstance(ratingService);
     }
 
     /**
@@ -98,11 +44,60 @@ public class RatingHandler implements HttpHandler {
      * Forward the request to the RatingController
      * Send the controller’s response back to the client
      *
-     * @param exchange the HTTP exchange containing the request and response
+     * @param httpExchange the HTTP exchange containing the request and response
      * @throws IOException if an input/output error occurs
      */
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange httpExchange) {
+        try{
+            Request request = new Request(httpExchange.getRequestURI());
+            Response response = null;
+            String requestBody = new String(httpExchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
+            String authHeader = httpExchange.getRequestHeaders().getFirst("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response = new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{ \"error\": \"Missing or invalid token\" }");
+                response.send(httpExchange);
+                return;
+            }
+
+            String token = authHeader.substring("Bearer ".length());
+            User user = UserService.getInstance(null).getUserByToken(token); // Singleton aus UserService verwenden
+
+            if (user == null) {
+                response = new Response(HttpStatus.UNAUTHORIZED, ContentType.JSON,
+                        "{ \"error\": \"Invalid token\" }");
+                response.send(httpExchange);
+                return;
+            }
+
+            // Update Rating
+            else if(httpExchange.getRequestMethod().equals(Method.PUT.name()) &&
+                    request.getPathParts().size() > 2 &&
+                    request.getPathParts().get(1).equalsIgnoreCase("ratings")){
+                response = this.ratingController.updateRating(Integer.parseInt(request.getPathParts().get(2)), requestBody, user);
+            }
+
+            // Like Rating
+            else if(httpExchange.getRequestMethod().equals(Method.POST.name()) &&
+                    request.getPathParts().size() > 2 &&
+                    request.getPathParts().get(3).equalsIgnoreCase("like")){
+                response = this.ratingController.likeRating(Integer.parseInt(request.getPathParts().get(2)), user);
+            }
+
+            // Confirm Rating Comment
+            else if(httpExchange.getRequestMethod().equals(Method.POST.name()) &&
+                    request.getPathParts().size() > 2 &&
+                    request.getPathParts().get(3).equalsIgnoreCase("confirm")){
+                response = this.ratingController.confirmRatingComment(Integer.parseInt(request.getPathParts().get(2)), user);
+            }
+
+
+            response.send(httpExchange);
+
+        }catch (IOException e){
+            throw new RuntimeException(e);
+        }
     }
 }

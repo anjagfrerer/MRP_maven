@@ -1,25 +1,26 @@
 package persistence;
 
+import database.DatabaseManager;
 import model.MediaEntry;
 import model.Rating;
 import model.User;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Repository class that manages all ratings and provides methods
  * to create, edit, delete, and like ratings.
  */
 public class RatingRepository implements IRatingRepository {
-    private List<Rating> ratings;
     private static RatingRepository instance = new RatingRepository();
 
     /** Private constructor to prevent creating multiple instances. */
     private RatingRepository() {
-        ratings = new ArrayList<>();
     }
 
     /**
@@ -38,78 +39,17 @@ public class RatingRepository implements IRatingRepository {
      * @param rating the rating being liked
      */
     @Override
-    public void likeRating(User user, Rating rating) {
-        rating.getLikes().add(user);
-    }
-
-    /**
-     * Removes a like from a user on a rating.
-     *
-     * @param user the user who unliked the rating
-     * @param rating the rating being unliked
-     */
-    @Override
-    public void unlikeRating(User user, Rating rating) {
-        rating.getLikes().remove(user);
-    }
-
-    /**
-     * Edits an existing rating.
-     *
-     * @param rating the rating to edit
-     * @param stars new number of stars
-     * @param comment new comment text
-     */
-    @Override
-    public void editRating(Rating rating, int stars, String comment) {
-        rating.setStars(stars);
-        rating.setComment(comment);
-    }
-
-    /**
-     * Deletes a rating from the list.
-     *
-     * @param rating the rating to remove
-     */
-    @Override
-    public void deleteRating(Rating rating) {
-        ratings.remove(rating);
-    }
-
-    /**
-     * Returns all ratings.
-     *
-     * @return list of all ratings
-     */
-    @Override
-    public List<Rating> getRatings() {
-        return ratings;
-    }
-
-    /**
-     * Replaces the current list of ratings with a new one.
-     *
-     * @param ratings new list of ratings
-     */
-    @Override
-    public void setRatings(List<Rating> ratings) {
-        this.ratings = ratings;
-    }
-
-    /**
-     * Finds a rating by its ID.
-     *
-     * @param id the ID of the rating
-     * @return the found rating
-     */
-    @Override
-    public Rating getRatingByID(String id) {
-        for (Rating rating : ratings) {
-            if (rating.getId().equals(id)) {
-                return rating;
-            }
+    public boolean likeRating(int ratingid, User user) {
+        String sql = "INSERT INTO likes (userid, ratingid) VALUES (?, ?)";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, user.getUserid());
+            ps.setInt(2, ratingid);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return null; // falls kein Rating gefunden wurde
     }
 
     /**
@@ -122,9 +62,98 @@ public class RatingRepository implements IRatingRepository {
      * @param mediaEntry the media being rated
      */
     @Override
-    public void createRating(User user, int stars, String comment, MediaEntry mediaEntry) {
-        Rating rating = new Rating(UUID.randomUUID().toString(), mediaEntry, stars, comment, user);
-        rating.setLocalDate(LocalDateTime.now());
-        ratings.add(rating);
+    public boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user) {
+        String sql = "INSERT INTO rating (mediaentryid, stars, comment, creator) VALUES (?, ?, ?, ?)";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, mediaentryid);
+            ps.setInt(2, stars);
+            ps.setString(3, comment);
+            ps.setInt(4, user.getUserid());
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            if (e.getSQLState().equals("23503")) {
+                return false; // MediaEntry existiert nicht
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
+        String sql = "UPDATE rating SET stars = ?, comment = ? WHERE mediaentryid = ?";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, stars);
+            ps.setString(2, comment);
+            ps.setInt(3, mediaentryid);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public List<Rating> getRatingHistory(int userId, User user) {
+        List<Rating> ratings = new ArrayList<>();
+        String sql = "SELECT r.*, COUNT(l.ratingid) AS likes FROM rating r LEFT JOIN likes l ON r.ratingid = l.ratingid WHERE r.creator = ? AND r.confirmed = true GROUP BY r.ratingid, mediaentryid, creator, stars, comment, created_at";
+        try(Connection conn = DatabaseManager.INSTANCE.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Rating rating = new Rating();
+                rating.setId(rs.getInt("ratingid"));
+                rating.setCreator(rs.getInt("creator"));
+                rating.setStars(rs.getInt("stars"));
+                rating.setComment(rs.getString("comment"));
+                rating.setLocalDate(rs.getTimestamp("created_at").toLocalDateTime());
+                rating.setLikes(rs.getInt("likes"));
+                ratings.add(rating);
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ratings;
+    }
+
+    @Override
+    public Rating getRatingById(int ratingid) {
+        String sql = "SELECT r.ratingid, r.creator, r.stars, r.comment, r.created_at, COUNT(l.userid) AS likes FROM rating r LEFT JOIN likes l ON r.ratingid = l.ratingid WHERE r.ratingid = ? GROUP BY r.ratingid, r.creator, r.stars, r.comment, r.created_at";
+        try(Connection conn = DatabaseManager.INSTANCE.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ratingid);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Rating rating = new Rating();
+                rating.setId(rs.getInt("ratingid"));
+                rating.setCreator(rs.getInt("creator"));
+                rating.setStars(rs.getInt("stars"));
+                rating.setComment(rs.getString("comment"));
+                rating.setLocalDate(rs.getTimestamp("created_at").toLocalDateTime());
+                rating.setLikes(rs.getInt("likes"));
+                return rating;
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean confirmRatingComment(int ratingid) {
+        String sql = "UPDATE rating SET confirmed = true WHERE ratingid = ?";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, ratingid);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            if (e.getSQLState().equals("23503")) {
+                return false; // MediaEntry existiert nicht
+            }
+            return false;
+        }
     }
 }

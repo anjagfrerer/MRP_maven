@@ -1,16 +1,19 @@
 package service;
 
 import model.MediaEntry;
+import model.Rating;
 import model.User;
+
+import java.util.List;
 
 /**
  * Service interface for managing ratings.
  * Provides methods to add, edit, delete, like, and unlike ratings.
  */
 public interface IRatingService {
-    void likeRating(User user, String ratingID);
-    void unlikeRating(User user, String ratingID);
-    void editRating(String ratingID, int stars, String comment);
-    void deleteRating(String ratingID);
-    void addRating(User user, int stars, String comment, MediaEntry mediaEntry);
+    boolean likeRating(int ratingid, User user);
+    boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user);
+    boolean updateRating(int mediaentryid, int stars, String comment, User user);
+    List<Rating> getRatingHistory(int userId, User user);
+    boolean confirmRatingComment(int ratingid, User user);
 }

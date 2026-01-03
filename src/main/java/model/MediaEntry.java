@@ -10,50 +10,49 @@ import java.util.List;
  */
 public class MediaEntry {
 
+    private int mediaentryid;
+    private int creatorId; // to assign each entry to a user (just creator can delete/edit)
     private String title;
     private String description;
-    private String mediatype;
-    private String id;
-    private int releaseYear;
-    private int agerestriction;
-    private int avgscore;
-    private boolean favorite;
-    private User creator; // to assign each entry to a user (just creator can delete/edit)
-    private List<Rating> ratings = new ArrayList<>(); //!
+    private String mediaType;
     private List<String> genres = new ArrayList<>();
+    private int releaseYear;
+    private int ageRestriction;
+    private double avgscore;
 
     /**
      * Creates a new media entry with the given details.
      *
      * @param title the title of the media
      * @param description a short description
-     * @param mediatype type of media (movie, book, game)
+     * @param mediaType type of media (movie, book, game)
      * @param genres list of genres this media falls into
      * @param releaseYear year of release
      * @param agerestriction minimum age to view
-     * @param creator the user who created this entry
+     * @param creatorId the user who created this entry
      */
-    public MediaEntry(String title, String description, String mediatype, List<String> genres, int releaseYear, int agerestriction, User creator) {
+    public MediaEntry(String title, String description, String mediaType, int releaseYear, List<String> genres, int agerestriction, int creatorId) {
         this.title = title;
         this.description = description;
-        this.mediatype = mediatype;
+        this.mediaType = mediaType;
         this.releaseYear = releaseYear;
-        this.agerestriction = agerestriction;
-        this.creator = creator;
+        this.ageRestriction = agerestriction;
+        this.creatorId = creatorId;
         this.genres = genres;
-        this.favorite = false;
     }
+
+    public MediaEntry() {}
 
     /**
      * Getters and Setters
      */
 
-    public String getId() {
-        return id;
+    public int getMediaentryid() {
+        return mediaentryid;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setMediaentryid(int mediaentryid) {
+        this.mediaentryid = mediaentryid;
     }
 
     public String getTitle() {
@@ -64,14 +63,6 @@ public class MediaEntry {
         this.title = title;
     }
 
-    public void setFavorite(boolean favorite) {
-        this.favorite = favorite;
-    }
-
-    public boolean isFavorite() {
-        return favorite;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -80,12 +71,12 @@ public class MediaEntry {
         this.description = description;
     }
 
-    public String getMediatype() {
-        return mediatype;
+    public String getMediaType() {
+        return mediaType;
     }
 
-    public void setMediatype(String mediatype) {
-        this.mediatype = mediatype;
+    public void setMediaType(String mediatype) {
+        this.mediaType = mediatype;
     }
 
     public List<String> getGenres() {
@@ -104,35 +95,27 @@ public class MediaEntry {
         this.releaseYear = releaseYear;
     }
 
-    public int getAgerestriction() {
-        return agerestriction;
+    public int getAgeRestriction() {
+        return ageRestriction;
     }
 
-    public void setAgerestriction(int agerestriction) {
-        this.agerestriction = agerestriction;
+    public void setAgeRestriction(int agerestriction) {
+        this.ageRestriction = agerestriction;
     }
 
-    public int getAvgscore() {
+    public double getAvgscore() {
         return avgscore;
     }
 
-    public void setAvgscore(int avgscore) {
+    public void setAvgscore(double avgscore) {
         this.avgscore = avgscore;
     }
 
-    public User getCreator() {
-        return creator;
+    public int getCreatorId() {
+        return creatorId;
     }
 
-    public void setCreator(User creator) {
-        this.creator = creator;
-    }
-
-    public List<Rating> getRatings() {
-        return ratings;
-    }
-
-    public void setRatings(List<Rating> ratings) {
-        this.ratings = ratings;
+    public void setCreatorId(int creatorId) {
+        this.creatorId = creatorId;
     }
 }

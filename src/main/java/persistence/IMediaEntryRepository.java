@@ -1,25 +1,37 @@
 package persistence;
 
 import model.MediaEntry;
-import model.User;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for managing media entries in the repository.
  * Defines methods to create, read, update, and delete media entries.
  */
 public interface IMediaEntryRepository {
+
     List<MediaEntry> getALlMediaEntries();
 
-    void addMediaEntry(MediaEntry mediaEntry);
+    boolean addMediaEntry(MediaEntry mediaEntry);
 
-    void deleteMediaEntry(String mediaTitle, String mediaType);
+    boolean deleteMediaEntry(int id);
 
-    MediaEntry getMediaEntryByID(String id);
+    MediaEntry getMediaEntryByID(int id);
 
-    void updateMediaEntry(String id, String title, String description, String mediatype,
-                          List<String> genres, int releaseYear, int agerestriction, User creator);
+    boolean updateMediaEntry(int id, String title, String description, String mediatype,
+                             List<String> genres, int releaseYear, int agerestriction, int creatorId);
 
-    void setFavoriteStatus(String id, boolean favorite);
+    boolean setFavoriteStatus(int userid, int mediaentryid);
+
+    boolean setUnFavoriteStatus(int userid, int mediaentryid);
+
+
+    List<MediaEntry> searchAndFilterMediaEntries(String title, String genre, String sortBy);
+
+    List<MediaEntry> fullSearchAndFilterMediaEntries(Map<String, Object> filters, String sortBy);
+
+    List<MediaEntry> getRecommendationByGenre(int userid);
+    List<MediaEntry> getRecommendationByContent(int userid);
+
 }
