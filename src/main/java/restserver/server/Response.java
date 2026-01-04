@@ -34,4 +34,17 @@ public class Response {
             throw new RuntimeException(e);
         }
     }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
 }

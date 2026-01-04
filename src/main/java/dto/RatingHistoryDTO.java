@@ -2,6 +2,10 @@ package dto;
 
 import java.time.LocalDateTime;
 
+/**
+ * This DTO stores rating history data for a user.
+ * It is used to transfer rating information for the Method getRatingHistory.
+ */
 public class RatingHistoryDTO {
     private int stars;
     private String comment;

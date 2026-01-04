@@ -15,13 +15,10 @@ import java.util.List;
  * to create and retrieve users.
  */
 public class UserRepository implements IUserRepository {
-    private List<User> registeredUsers;
-    //private List<User> loggedInUsers;
-    private static final UserRepository instance = new UserRepository();
+    private static UserRepository instance = new UserRepository();
 
     /** Private constructor to prevent creating multiple instances. */
     private UserRepository() {
-        this.registeredUsers = new ArrayList<>();
     }
 
     /**
@@ -30,6 +27,9 @@ public class UserRepository implements IUserRepository {
      * @return the shared UserRepository instance
      */
     public static UserRepository getInstance() {
+        if (instance == null) {
+            instance = new UserRepository();
+        }
         return instance;
     }
 
@@ -59,11 +59,10 @@ public class UserRepository implements IUserRepository {
     }
 
     /**
-     * Creates a new user with a random unique ID
-     * and adds it to the registered user list.
+     * Creates a new user and adds it to the registered users list.
      *
-     * @param username the user's username
-     * @param password the user's password
+     * @param user the user object containing username and password
+     * @return true if user was created successfully, false otherwise
      */
     @Override
     public boolean createUser(User user) {
@@ -100,7 +99,7 @@ public class UserRepository implements IUserRepository {
      * Finds a user by their username.
      *
      * @param username the username to search for
-     * @return the found user or null
+     * @return the found user or null if not found
      */
     @Override
     public User getUserByUsername(String username) {
@@ -125,6 +124,12 @@ public class UserRepository implements IUserRepository {
         return null;
     }
 
+    /**
+     * Retrieves the profile information of a user.
+     *
+     * @param userId the ID of the user
+     * @return the Profile object or null if not found
+     */
     @Override
     public Profile getProfile(int userId) {
         String sql = "SELECT p.profileid, u.username, p.email, p.favoritegenre, COUNT(r.ratingid) AS totalratings, AVG(r.stars) AS avg_score FROM mrp_user u LEFT JOIN profile p ON u.userid = p.userid LEFT JOIN rating r ON u.userid = r.creator WHERE u.userid = ? GROUP BY p.profileid, u.userid, p.email, p.favoritegenre, p.totalratings, p.avgscore";
@@ -140,7 +145,7 @@ public class UserRepository implements IUserRepository {
                     profile.setEmail(rs.getString("email"));
                     profile.setFavoriteGenre(rs.getString("favoritegenre"));
                     profile.setTotalRatings(rs.getInt("totalratings"));
-                    profile.setAvgScore(rs.getInt("avg_score"));
+                    profile.setAvgScore(rs.getDouble("avg_score"));
                     return profile;
                 }
             }
@@ -151,6 +156,12 @@ public class UserRepository implements IUserRepository {
         return null;
     }
 
+    /**
+     * Returns the favorite media entries of a user.
+     *
+     * @param userId the ID of the user
+     * @return list of favorite media entries or null if an error occurs
+     */
     @Override
     public List<MediaEntry> getFavorites(int userId) {
         String sql = "SELECT m.mediaentryid, m.title, m.description, m.media_type, m.release_year, m.age_restriction, AVG(r.stars) AS avg_score, STRING_AGG(DISTINCT g.name, ',') AS genres FROM mediaentry m JOIN favorite f ON m.mediaentryid = f.mediaentryid LEFT JOIN mediaentry_genre mg ON mg.mediaentryid = m.mediaentryid LEFT JOIN genre g ON mg.genreid = g.genreid LEFT JOIN rating r ON m.mediaentryid = r.mediaentryid WHERE f.userid = ? GROUP BY m.mediaentryid";
@@ -185,6 +196,14 @@ public class UserRepository implements IUserRepository {
         }
     }
 
+    /**
+     * Updates the profile information of a user.
+     *
+     * @param userId the ID of the user
+     * @param email new email
+     * @param favoritegenre new favorite genre
+     * @return true if update was successful, false otherwise
+     */
     @Override
     public boolean updateProfile(int userId, String email, String favoritegenre) {
         String sql = "UPDATE profile SET email = COALESCE(?, email), favoritegenre = COALESCE(?, favoritegenre) WHERE userid = ?";
@@ -200,6 +219,11 @@ public class UserRepository implements IUserRepository {
         }
     }
 
+    /**
+     * Returns the leaderboard of users based on total ratings.
+     *
+     * @return list of Profile objects sorted by total ratings in descending order
+     */
     @Override
     public List<Profile> getLeaderboard() {
         List<Profile> leaderboard = new ArrayList<>();
@@ -212,5 +236,12 @@ public class UserRepository implements IUserRepository {
         }
         leaderboard.sort((p1, p2) -> Integer.compare(p2.getTotalRatings(), p1.getTotalRatings()));
         return leaderboard;
+    }
+
+    /**
+     * Resets the singleton instance (for testing purposes).
+     */
+    public static void resetInstance() {
+        instance = null;
     }
 }

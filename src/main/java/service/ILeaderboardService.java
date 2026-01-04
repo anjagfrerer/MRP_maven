@@ -6,8 +6,8 @@ import model.User;
 import java.util.List;
 
 /**
- * Service interface for managing media entries.
- * Provides methods for adding, editing, deleting, and favoriting media entries.
+ * Service interface for managing the leaderboard.
+ * Provides methods to retrieve user rankings.
  */
 public interface ILeaderboardService {
 

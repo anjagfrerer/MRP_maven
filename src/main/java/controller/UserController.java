@@ -20,18 +20,21 @@ public class UserController extends Controller{
     private static UserController instance;
 
     /**
-     * creates an UserController with a corresponding IUserService, that is responsible for the registration and login logic.
-     * @param userService
-     * @return
+     * Creates a new UserController.
+     *
+     * @param userService service used for user logic
+     * @return no return value (constructor)
      */
     public UserController(IUserService userService) {
         this.userService = userService;
     }
 
     /**
-     * Returns a single instance of the UserController (Singleton pattern). If no instance exists, a new one is created.
-     * @param userService
-     * @return
+     * Returns the single instance of UserController.
+     * Creates a new one if it does not exist.
+     *
+     * @param userService service used for user logic
+     * @return UserController instance
      */
     public static UserController getInstance(IUserService userService) {
         if (instance == null) instance = new UserController(userService);
@@ -39,12 +42,10 @@ public class UserController extends Controller{
     }
 
     /**
-     * The login method reads the user's data from the request (in this case, username and password) and forwards it to the UserService,
-     * which returns either a failed or successful login. A failed login can be caused by a non-existent username or an incorrect password.
-     * If successful, a success message and the user's generated token are returned in a Response object. If a conflict occurs, an
-     * error message is returned in a Response object.
-     * @param requestBody data containing username und password
-     * @return Response with the corresponding HTTPStatus, ContentType, and Content
+     * Logs a user in.
+     *
+     * @param requestBody JSON data with username and password
+     * @return HTTP response with token or error message
      */
     public Response login(String requestBody)
     {
@@ -58,13 +59,13 @@ public class UserController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Login successful", "token", token))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Login successful.", "token", token))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "Invalid credentials"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Invalid credentials."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -78,17 +79,14 @@ public class UserController extends Controller{
     }
 
     /**
-     * The login register reads the user's data from the request (in this case, username and password) and forwards it to the UserService,
-     * which returns either a failed or successful registration. A failed registration can be caused by an already taken username.
-     * If successful, a success message and the user's generated token are returned in a Response object. If a conflict occurs, an
-     * error message is returned in a Response object.
-     * @param requestBody data containing username und password
-     * @return Response with the corresponding HTTPStatus, ContentType, and Content
+     * Registers a new user.
+     *
+     * @param requestBody JSON data with username and password
+     * @return HTTP response with token or error message
      */
     public Response register(String requestBody)
     {
         try {
-            // "{\"Username\":\"max\",\"Password\":\"1234\"}";
             User requestUser = this.getObjectMapper().readValue(requestBody, User.class);
             boolean success = userService.registerUser(requestUser.getUsername(), requestUser.getPassword());
 
@@ -97,13 +95,13 @@ public class UserController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Registration successful", "token", token))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Registration successful.", "token", token))
                 );
             }else{
                 return new Response(
                         HttpStatus.UNAUTHORIZED,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "Username already exists"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Username already exists."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -116,6 +114,13 @@ public class UserController extends Controller{
         }
     }
 
+    /**
+     * Gets the profile of a user.
+     *
+     * @param userId ID of the user
+     * @param user the requesting user
+     * @return HTTP response with the profile
+     */
     public Response getProfile(int userId, User user) {
         try {
             Profile profile = userService.getProfile(userId, user);
@@ -130,7 +135,7 @@ public class UserController extends Controller{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Could not load profile."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -143,6 +148,13 @@ public class UserController extends Controller{
         }
     }
 
+    /**
+     * Gets the favorite media entries of a user.
+     *
+     * @param userId ID of the user
+     * @param user the requesting user
+     * @return HTTP response with a list of favorites
+     */
     public Response getFavorites(int userId, User user) {
         try {
             List<MediaEntry> favorites = userService.getFavorites(userId, user);
@@ -157,7 +169,7 @@ public class UserController extends Controller{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Could not load favorites."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -170,6 +182,14 @@ public class UserController extends Controller{
         }
     }
 
+    /**
+     * Updates the profile of a user.
+     *
+     * @param userId ID of the user
+     * @param requestBody JSON data with profile information
+     * @param user the requesting user
+     * @return HTTP response with success or error message
+     */
     public Response updateProfile(int userId, String requestBody, User user) {
         try {
             Profile profile = this.getObjectMapper().readValue(requestBody, Profile.class);
@@ -179,13 +199,13 @@ public class UserController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Profile Update successful"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Profile Update successful."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Profile Update was not successful."))
                 );
             }
         } catch (JsonProcessingException e) {

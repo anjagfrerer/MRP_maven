@@ -14,6 +14,8 @@ import java.util.List;
  * - find a user by username
  * - generate a token for a user
  * - retrieve a user by their token
+ * - get and update user profile
+ * - retrieve favorites
  */
 public interface IUserService {
     boolean login(String username, String password);
@@ -22,8 +24,6 @@ public interface IUserService {
     String generateToken(User requestUser);
     User getUserByToken(String token);
     Profile getProfile(int userId, User user);
-
     List<MediaEntry> getFavorites(int userId, User user);
-
     boolean updateProfile(int userId, String email, String favoritegenre, User user);
 }

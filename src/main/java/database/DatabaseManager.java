@@ -5,22 +5,27 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Im Enum DatabaseManager werden alle Konstanten (hier nur INSTANCE) automatisch als public static final Objekte erzeugt.
- * Das heißt, DatabaseManager.INSTANCE ist eine einzige, globale Instanz des DatabaseManager und man kann keine weiteren erzeugen.
+ * This enum manages the database connection.
+ * It uses a single instance (INSTANCE) for the whole application.
  */
 public enum DatabaseManager {
     INSTANCE;
 
+    /**
+     * Creates and returns a connection to the database.
+     *
+     * @return a Connection to the PostgreSQL database
+     */
     public Connection getConnection()
     {
         try {
-            // JDBC-API (DriverManager), um sich mit der PostgreSQL-Datenbank zu verbinden
+            // Uses JDBC to connect to the PostgreSQL database
             return DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5432/swen1",
                     "postgres",
                     "mysecretpassword");
         } catch (SQLException e) {
-            throw new DataAccessException("Datenbankverbindungsaufbau nicht erfolgreich", e);
+            throw new DataAccessException("Database connection failed", e);
         }
     }
 }

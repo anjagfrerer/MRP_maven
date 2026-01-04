@@ -5,7 +5,7 @@ import restserver.server.Server;
 import java.io.IOException;
 
 /**
- * Main class that starts the REST server.
+ * Main class to start the REST server.
  */
 public class Main {
     /**
@@ -17,6 +17,6 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Server server = new Server();
         server.start();
-        System.out.println("Server läuft auf http://localhost:8080");
+        System.out.println("Server is running at http://localhost:8080");
     }
 }

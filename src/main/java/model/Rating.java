@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Represents a rating given by a user to a media entry.
- * Each rating has stars, a comment, a creator, a date, and a list of likes.
+ * Stores id, stars, comment, creator ID, date, and number of likes.
  */
 public class Rating {
 
@@ -18,13 +18,12 @@ public class Rating {
     private int likes;
 
     /**
-     * Creates a new rating for a media entry.
+     * Creates a new Rating.
      *
-     * @param id unique id of the rating
-     * @param mediaEntry the media being rated
+     * @param id unique ID of the rating
      * @param stars number of stars
      * @param comment optional comment
-     * @param creator the user who created the rating
+     * @param creatorid ID of the user who created the rating
      */
     public Rating(int id, int stars, String comment, int creatorid) {
         this.ratingid = id;

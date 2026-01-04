@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a media entry like a movie, book, or game.
- * Each entry has a title, description, type, genres, release year, age restriction,
- * average score, favorite status, a creator user, and a list of ratings.
+ * Represents a media entry such as a movie, book, or game.
+ * Stores id, title, description, type, genres, release year, age restriction,
+ * average score and creator ID.
  */
 public class MediaEntry {
 
     private int mediaentryid;
-    private int creatorId; // to assign each entry to a user (just creator can delete/edit)
+    private int creatorId;
     private String title;
     private String description;
     private String mediaType;

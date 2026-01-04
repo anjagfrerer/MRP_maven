@@ -22,12 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * MediaEntryHandler is responsible for handling all HTTP requests related to media entries.
- * Currently, it provides simple methods for adding and deleting media entries.
- * In the future, all incoming HTTP requests (GET, POST, PUT, DELETE)
- * will be processed inside the handle() method.
- * These requests will then be forwarded to a new MediaEntryController
- * which will handle the actual business logic.
+ * Handles HTTP requests for media entries.
+ * It forwards requests to MediaEntryController and RatingController.
  */
 public class MediaEntryHandler implements HttpHandler {
 
@@ -36,9 +32,10 @@ public class MediaEntryHandler implements HttpHandler {
     private RatingController ratingController;
 
     /**
-     * Creates a new MediaEntryHandler with a given media entry service.
+     * Creates a new MediaEntryHandler.
      *
      * @param mediaEntryService service used to manage media entries
+     * @param ratingService service used to manage ratings
      */
     public MediaEntryHandler(IMediaEntryService mediaEntryService, IRatingService ratingService) {
         this.mediaEntryService = mediaEntryService;
@@ -48,14 +45,9 @@ public class MediaEntryHandler implements HttpHandler {
 
     /**
      * Handles all incoming HTTP requests for media entries.
-     * This method:
+     * It checks the HTTP method, authenticates the user, and forwards the request to the controller.
      *
-     * Checks the HTTP request method (GET, POST, PUT, DELETE)
-     * Parses request data and headers
-     * Forwards the request to the MediaEntryController
-     * Returns the controller’s response to the client
-     *
-     * @param httpExchange the HTTP exchange containing the request and response
+     * @param httpExchange contains the HTTP request and response
      * @throws IOException if an input/output error occurs
      */
     @Override

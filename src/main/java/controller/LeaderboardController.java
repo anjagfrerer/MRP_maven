@@ -12,47 +12,50 @@ import service.IRatingService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 public class LeaderboardController extends Controller{
     private static ILeaderboardService leaderboardService;
     private static LeaderboardController instance;
 
     /**
-     * creates an RatingController with a corresponding IRatingService, that is responsible for the registration and login logic.
-     * @param ratingService
-     * @return
+     * Creates a new LeaderboardController.
+     *
+     * @param leaderboardService the service used to get leaderboard data
+     * @return no return value (constructor)
      */
     public LeaderboardController(ILeaderboardService leaderboardService) {
         this.leaderboardService = leaderboardService;
     }
 
     /**
-     * Returns a single instance of the UserController (Singleton pattern). If no instance exists, a new one is created.
-     * @param ratingService
-     * @return
+     * Returns the single instance of the LeaderboardController.
+     * If it does not exist, it will be created.
+     *
+     * @param leaderboardService the service used to get leaderboard data
+     * @return the LeaderboardController instance
      */
     public static LeaderboardController getInstance(ILeaderboardService leaderboardService) {
         if (instance == null) instance = new LeaderboardController(leaderboardService);
         return instance;
     }
 
+    /**
+     * Gets the leaderboard as a list of profiles.
+     *
+     * @return HTTP response with the leaderboard in JSON format
+     */
     public Response getLeaderboard() {
         try {
             List<Profile> leaderboard = leaderboardService.getLeaderboard();
-
-            if(leaderboard!=null) {
-                return new Response(
-                        HttpStatus.OK,
-                        ContentType.JSON,
-                        getObjectMapper().writeValueAsString(leaderboard)
-                );
-            }else{
-                return new Response(
-                        HttpStatus.CONFLICT,
-                        ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
-                );
+            if (leaderboard == null) {
+                leaderboard = Collections.emptyList();
             }
+            return new Response(
+                    HttpStatus.OK,
+                    ContentType.JSON,
+                    getObjectMapper().writeValueAsString(leaderboard)
+            );
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return new Response(

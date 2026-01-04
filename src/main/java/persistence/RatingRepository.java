@@ -2,8 +2,6 @@ package persistence;
 
 import database.DatabaseManager;
 import dto.RatingHistoryDTO;
-import model.MediaEntry;
-import model.Profile;
 import model.Rating;
 import model.User;
 
@@ -11,7 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -37,8 +34,9 @@ public class RatingRepository implements IRatingRepository {
     /**
      * Adds a like from a user to a rating.
      *
+     * @param ratingid the ID of the rating being liked
      * @param user the user who liked the rating
-     * @param rating the rating being liked
+     * @return true if the like was added, false otherwise
      */
     @Override
     public boolean likeRating(int ratingid, User user) {
@@ -51,7 +49,7 @@ public class RatingRepository implements IRatingRepository {
             return true;
         } catch (SQLException e) {
             if ("23503".equals(e.getSQLState())) {
-                // FK violation: Rating existiert nicht
+                // FK violation: Rating does not exist
                 return false;
             }
             return false;
@@ -59,13 +57,14 @@ public class RatingRepository implements IRatingRepository {
     }
 
     /**
-     * Creates a new rating and adds it to the list.
-     * Generates a random unique ID and sets the current date.
+     * Creates a new rating for a media entry.
+     * Sets the current date automatically.
      *
-     * @param user the creator of the rating
+     * @param mediaentryid the ID of the media being rated
      * @param stars number of stars
      * @param comment optional comment
-     * @param mediaEntry the media being rated
+     * @param user the user creating the rating
+     * @return true if rating was added successfully, false otherwise
      */
     @Override
     public boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user) {
@@ -79,12 +78,21 @@ public class RatingRepository implements IRatingRepository {
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
             if (e.getSQLState().equals("23503")) {
-                return false; // MediaEntry existiert nicht
+                return false; // MediaEntry does not exist
             }
             return false;
         }
     }
 
+    /**
+     * Updates an existing rating.
+     *
+     * @param mediaentryid the ID of the media entry
+     * @param stars new number of stars
+     * @param comment new comment
+     * @param user the user who created the rating
+     * @return true if update was successful, false otherwise
+     */
     @Override
     public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
         String sql = "UPDATE rating SET stars = ?, comment = ? WHERE mediaentryid = ? AND creator = ?";
@@ -101,6 +109,13 @@ public class RatingRepository implements IRatingRepository {
         }
     }
 
+    /**
+     * Retrieves the rating history of a user.
+     *
+     * @param userId the ID of the user
+     * @param user the user object
+     * @return list of rating history entries, or null if an error occurs
+     */
     @Override
     public List<RatingHistoryDTO> getRatingHistory(int userId, User user) {
         List<RatingHistoryDTO> ratings = new ArrayList<>();
@@ -127,6 +142,12 @@ public class RatingRepository implements IRatingRepository {
         return ratings;
     }
 
+    /**
+     * Retrieves a rating by its ID.
+     *
+     * @param ratingid the ID of the rating
+     * @return the rating object, or null if not found
+     */
     @Override
     public Rating getRatingById(int ratingid) {
         String sql = "SELECT r.ratingid, r.creator, r.stars, r.comment, r.created_at, COUNT(l.userid) AS likes FROM rating r LEFT JOIN likes l ON r.ratingid = l.ratingid WHERE r.ratingid = ? GROUP BY r.ratingid, r.creator, r.stars, r.comment, r.created_at";
@@ -151,6 +172,12 @@ public class RatingRepository implements IRatingRepository {
         return null;
     }
 
+    /**
+     * Confirms a rating comment.
+     *
+     * @param ratingid the ID of the rating
+     * @return true if confirmation succeeded, false otherwise
+     */
     @Override
     public boolean confirmRatingComment(int ratingid) {
         String sql = "UPDATE rating SET confirmed = true WHERE ratingid = ?";
@@ -162,6 +189,47 @@ public class RatingRepository implements IRatingRepository {
             if (e.getSQLState().equals("23503")) {
                 return false; // MediaEntry existiert nicht
             }
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a rating.
+     *
+     * @param ratingid the ID of the rating
+     * @return true if deletion succeeded, false otherwise
+     */
+    @Override
+    public boolean deleteRating(int ratingid) {
+        String sql = "DELETE FROM rating WHERE ratingid = ?";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, ratingid);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            if (e.getSQLState().equals("23503")) {
+                return false; // MediaEntry existiert nicht
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a user has liked a rating.
+     *
+     * @param ratingId the ID of the rating
+     * @param userId the ID of the user
+     * @return true if the user has liked the rating, false otherwise
+     */
+    @Override
+    public boolean hasUserLikedRating(int ratingId, int userId) {
+        String sql = "SELECT 1 FROM likes WHERE ratingid = ? AND userid = ?";
+        try (Connection conn = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ratingId);
+            ps.setInt(2, userId);
+            return ps.executeQuery().next();
+        } catch (SQLException e) {
             return false;
         }
     }

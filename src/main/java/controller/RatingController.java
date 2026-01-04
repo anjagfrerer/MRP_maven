@@ -17,24 +17,34 @@ public class RatingController extends Controller{
     private static RatingController instance;
 
     /**
-     * creates an RatingController with a corresponding IRatingService, that is responsible for the registration and login logic.
-     * @param ratingService
-     * @return
+     * Creates a new RatingController.
+     *
+     * @param ratingService service used for rating logic
+     * @return no return value (constructor)
      */
     public RatingController(IRatingService ratingService) {
         this.ratingService = ratingService;
     }
 
     /**
-     * Returns a single instance of the UserController (Singleton pattern). If no instance exists, a new one is created.
-     * @param ratingService
-     * @return
+     * Returns the single instance of RatingController.
+     * Creates a new one if it does not exist.
+     *
+     * @param ratingService service used for rating logic
+     * @return RatingController instance
      */
     public static RatingController getInstance(IRatingService ratingService) {
         if (instance == null) instance = new RatingController(ratingService);
         return instance;
     }
 
+    /**
+     * Likes a rating.
+     *
+     * @param ratingid ID of the rating
+     * @param user the user who likes the rating
+     * @return HTTP response with success or error message
+     */
     public Response likeRating(int ratingid, User user) {
         try {
             boolean success = ratingService.likeRating(ratingid, user);
@@ -43,13 +53,13 @@ public class RatingController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Like successful"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Like successful."))
                 );
             }else{
                 return new Response(
-                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "Like was not successful"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Like was not successful."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -62,6 +72,14 @@ public class RatingController extends Controller{
         }
     }
 
+    /**
+     * Rates a media entry.
+     *
+     * @param mediaentryid ID of the media entry
+     * @param requestBody JSON data with rating information
+     * @param user the user who rates the media entry
+     * @return HTTP response with success or error message
+     */
     public Response rateMediaEntry(int mediaentryid, String requestBody, User user) {
         try {
             Rating rating = this.getObjectMapper().readValue(requestBody, Rating.class);
@@ -71,13 +89,13 @@ public class RatingController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully rated"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully rated."))
                 );
             }else{
                 return new Response(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "Rating was not successful"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Rating was not successful."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -90,6 +108,14 @@ public class RatingController extends Controller{
         }
     }
 
+    /**
+     * Updates an existing rating.
+     *
+     * @param mediaentryid ID of the media entry
+     * @param requestBody JSON data with updated rating
+     * @param user the user who updates the rating
+     * @return HTTP response with success or error message
+     */
     public Response updateRating(int mediaentryid, String requestBody, User user) {
         try {
             Rating rating = this.getObjectMapper().readValue(requestBody, Rating.class);
@@ -99,13 +125,13 @@ public class RatingController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Rating successfully updated"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Rating successfully updated."))
                 );
             }else{
                 return new Response(
-                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "Update was not successful"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Update was not successful."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -118,6 +144,13 @@ public class RatingController extends Controller{
         }
     }
 
+    /**
+     * Gets the rating history of a user.
+     *
+     * @param userId ID of the user
+     * @param user the requesting user
+     * @return HTTP response with a list of rating history entries
+     */
     public Response getRatingHistory(int userId, User user) {
         try {
             List<RatingHistoryDTO> ratings = ratingService.getRatingHistory(userId, user);
@@ -132,7 +165,7 @@ public class RatingController extends Controller{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Error loading Rating History."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -145,6 +178,13 @@ public class RatingController extends Controller{
         }
     }
 
+    /**
+     * Confirms a rating comment.
+     *
+     * @param ratingid ID of the rating
+     * @param user the user who confirms the comment
+     * @return HTTP response with success or error message
+     */
     public Response confirmRatingComment(int ratingid, User user) {
         try {
             boolean success = ratingService.confirmRatingComment(ratingid, user);
@@ -153,13 +193,47 @@ public class RatingController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "Rating comment confirmed"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "Rating comment confirmed."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Rating comment could not be confirmed."))
+                );
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new Response(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Internal Server Error\" }"
+            );
+        }
+    }
+
+    /**
+     * Deletes a rating.
+     *
+     * @param ratingid ID of the rating
+     * @param user the user who deletes the rating
+     * @return HTTP response with success or error message
+     */
+    public Response deleteRating(int ratingid, User user) {
+        try {
+            boolean success = ratingService.deleteRating(ratingid, user);
+
+            if(success) {
+                return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("message", "Rating deleted."))
+                );
+            }else{
+                return new Response(
+                        HttpStatus.CONFLICT,
+                        ContentType.JSON,
+                        getObjectMapper().writeValueAsString(Map.of("error", "Rating could not be deleted."))
                 );
             }
         } catch (JsonProcessingException e) {

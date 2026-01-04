@@ -20,18 +20,21 @@ public class MediaEntryController extends Controller{
     private static MediaEntryController instance;
 
     /**
-     * creates an MediaEntryController with a corresponding IMediaEntryService, that is responsible for the MediaENtry CRUD logic.
-     * @param mediaEntryService
-     * @return
+     * Creates a new MediaEntryController.
+     *
+     * @param mediaEntryService service used for media entry logic
+     * @return no return value (constructor)
      */
     public MediaEntryController(IMediaEntryService mediaEntryService) {
         this.mediaEntryService = mediaEntryService;
     }
 
     /**
-     * Returns a single instance of the MediaEntryController (Singleton pattern). If no instance exists, a new one is created.
-     * @param mediaEntryService
-     * @return
+     * Returns the single instance of MediaEntryController.
+     * Creates a new one if it does not exist.
+     *
+     * @param mediaEntryService service used for media entry logic
+     * @return MediaEntryController instance
      */
     public static MediaEntryController getInstance(IMediaEntryService mediaEntryService) {
         if (instance == null) instance = new MediaEntryController(mediaEntryService);
@@ -39,12 +42,11 @@ public class MediaEntryController extends Controller{
     }
 
     /**
-     * The login method reads the user's data from the request (in this case, username and password) and forwards it to the UserService,
-     * which returns either a failed or successful login. A failed login can be caused by a non-existent username or an incorrect password.
-     * If successful, a success message and the user's generated token are returned in a Response object. If a conflict occurs, an
-     * error message is returned in a Response object.
-     * @param requestBody data containing username und password
-     * @return Response with the corresponding HTTPStatus, ContentType, and Content
+     * Creates a new media entry.
+     *
+     * @param requestBody JSON data of the media entry
+     * @param user the user who creates the media entry
+     * @return HTTP response with success or error message
      */
     public Response createMediaEntry(String requestBody, User user)
     {
@@ -56,13 +58,13 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully added"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully added."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "MediaEntry was not added."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -75,6 +77,13 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Deletes a media entry.
+     *
+     * @param mediaEntryId ID of the media entry
+     * @param user the user who deletes the media entry
+     * @return HTTP response with success or error message
+     */
     public Response deleteMediaEntry(int mediaEntryId, User user)
     {
         try {
@@ -84,13 +93,13 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully deleted"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry successfully deleted."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "MediaEntry was not deleted."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -103,6 +112,13 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Marks a media entry as favorite.
+     *
+     * @param mediaEntryID ID of the media entry
+     * @param user the user who favorites the media entry
+     * @return HTTP response with success or error message
+     */
     public Response favoriteMediaEntry(int mediaEntryID, User user) {
         try {
             boolean success = mediaEntryService.favoriteMediaEntry(mediaEntryID, user);
@@ -111,13 +127,13 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry set as favorite"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry set as favorite."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "MediaEntry could not be set as favorite."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -130,6 +146,13 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Removes a media entry from favorites.
+     *
+     * @param mediaEntryID ID of the media entry
+     * @param user the user who removes the favorite
+     * @return HTTP response with success or error message
+     */
     public Response unFavoriteMediaEntry(int mediaEntryID, User user) {
         try {
             boolean success = mediaEntryService.unFavoriteMediaEntry(mediaEntryID, user);
@@ -138,13 +161,13 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry delted from favorites"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry deleted from favorites."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "MediaEntry was not deleted from favorites."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -157,6 +180,14 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Updates an existing media entry.
+     *
+     * @param mediaEntryID ID of the media entry
+     * @param requestBody JSON data with updated values
+     * @param user the user who updates the media entry
+     * @return HTTP response with success or error message
+     */
     public Response updateMediaEntry(int mediaEntryID, String requestBody, User user) {
         try {
             MediaEntry mediaEntry = this.getObjectMapper().readValue(requestBody, MediaEntry.class);
@@ -166,13 +197,13 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry updated succesfully"))
+                        getObjectMapper().writeValueAsString(Map.of("message", "MediaEntry updated successfully."))
                 );
             }else{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "MediaEntry could not be updated."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -185,6 +216,12 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Searches and filters media entries.
+     *
+     * @param queryParams map with search and filter parameters
+     * @return HTTP response with a list of media entries
+     */
     public Response searchAndFilterMediaEntries(Map<String, String> queryParams) {
         try {
             String title = queryParams.get("title");
@@ -225,10 +262,10 @@ public class MediaEntryController extends Controller{
             }
 
             return new Response(
-                        HttpStatus.CONFLICT,
-                        ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
-                );
+                    HttpStatus.CONFLICT,
+                    ContentType.JSON,
+                    getObjectMapper().writeValueAsString(Map.of("error", "An error occurred while filtering."))
+            );
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return new Response(
@@ -239,6 +276,13 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Gets a media entry by its ID.
+     *
+     * @param mediaEntryID ID of the media entry
+     * @param user the requesting user
+     * @return HTTP response with the media entry
+     */
     public Response getMediaEntryById(int mediaEntryID, User user) {
         try {
             MediaEntry mediaEntry = mediaEntryService.getMediaEntryById(mediaEntryID, user);
@@ -253,7 +297,7 @@ public class MediaEntryController extends Controller{
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
-                        getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                        getObjectMapper().writeValueAsString(Map.of("error", "Could not get MediaEntry by ID."))
                 );
             }
         } catch (JsonProcessingException e) {
@@ -266,6 +310,14 @@ public class MediaEntryController extends Controller{
         }
     }
 
+    /**
+     * Gets media recommendations for a user.
+     *
+     * @param userid ID of the user
+     * @param queryParams parameters for recommendation type
+     * @param user the requesting user
+     * @return HTTP response with recommended media entries
+     */
     public Response getRecommendation(int userid, Map<String, String> queryParams, User user) {
         try {
             List<MediaEntry> mediaEntries = new ArrayList<MediaEntry>();
@@ -287,7 +339,7 @@ public class MediaEntryController extends Controller{
             return new Response(
                     HttpStatus.CONFLICT,
                     ContentType.JSON,
-                    getObjectMapper().writeValueAsString(Map.of("error", "An error occured"))
+                    getObjectMapper().writeValueAsString(Map.of("error", "Could not load recommendations."))
             );
         } catch (JsonProcessingException e) {
             e.printStackTrace();

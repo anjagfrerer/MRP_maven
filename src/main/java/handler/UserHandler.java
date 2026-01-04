@@ -21,9 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * This class handles all user-related HTTP requests.
- * It connects the HTTP server with the UserController.
- * It processes actions like user login and registration.
+ * Handles HTTP requests for users.
+ * It forwards requests to UserController, RatingController, or MediaEntryController.
+ * Supports login, registration, profile, favorites, recommendations, and rating history.
  */
 public class UserHandler implements HttpHandler {
 
@@ -33,8 +33,11 @@ public class UserHandler implements HttpHandler {
     private MediaEntryController mediaEntryController;
 
     /**
-     * Creates a new UserHandler with a given UserService.
-     * @param userService the service used for user operations
+     * Creates a new UserHandler.
+     *
+     * @param userService service for user operations
+     * @param ratingService service for rating operations
+     * @param mediaEntryService service for media entry operations
      */
     public UserHandler(UserService userService, RatingService ratingService, MediaEntryService mediaEntryService) {
         this.userService = userService;
@@ -44,17 +47,11 @@ public class UserHandler implements HttpHandler {
     }
 
     /**
-     * Handles all incoming HTTP requests related to user actions.
-     * This method is automatically called by the HTTP server when a client
-     * sends a request to a user-related URL (for example: "/users/login" or "/users/register").
-     * It reads the request data, checks what kind of request it is (method and path),
-     * and then calls the right function in the UserController.
-     * The controller checks the login data and creates a Response which is then sent back to the user.
+     * Handles incoming HTTP requests for users.
+     * It checks the HTTP method, authenticates the user if needed,
+     * and forwards the request to the appropriate controller.
      *
-     * If something goes wrong while reading the request or sending the response,
-     * the method throws a RuntimeException.
-     * @param httpExchange the HTTP exchange object that contains information about the incoming request (like URL, headers, and body)
-     *                     and allows sending a response back to the client
+     * @param httpExchange contains the HTTP request and response
      */
     @Override
     public void handle(HttpExchange httpExchange) {

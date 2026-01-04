@@ -12,7 +12,8 @@ import java.util.Map;
 
 /**
  * Service class for managing users and authentication.
- * Provides methods to register, log in, check passwords, and manage authentication tokens.
+ * Provides methods to register, log in, check passwords, generate tokens,
+ * retrieve users by token, and manage user profiles and favorites.
  */
 public class UserService implements IUserService {
     private static UserService instance;
@@ -31,10 +32,10 @@ public class UserService implements IUserService {
     }
 
     /**
-     * Returns the single instance of UserService.
+     * Returns the singleton instance of UserService.
      *
      * @param repository the repository used to store users
-     * @return the instance
+     * @return the singleton instance
      */
     public static UserService getInstance(IUserRepository repository) {
         if (instance == null) instance = new UserService(repository);
@@ -43,10 +44,11 @@ public class UserService implements IUserService {
 
     /**
      * Logs in a user with username and password.
-     * If successful, generates an authentication token and adds the user to the logged-in list.
+     * If successful, generates an authentication token and adds the user
+     * to the logged-in list.
      *
-     * @param username the users username
-     * @param password the users password
+     * @param username the user's username
+     * @param password the user's password
      * @return true if login is successful, false otherwise
      */
     @Override
@@ -100,7 +102,7 @@ public class UserService implements IUserService {
     }
 
     /**
-     * Checks if the given password matches the users password.
+     * Checks if the given password matches the user's password.
      *
      * @param username the user's username
      * @param password the password to check
@@ -116,7 +118,7 @@ public class UserService implements IUserService {
     }
 
     /**
-     * Generates a token for a user.
+     * Generates an authentication token for a user.
      *
      * @param user the user to generate a token for
      * @return a token string
@@ -127,7 +129,7 @@ public class UserService implements IUserService {
     }
 
     /**
-     * Finds a user by their token.
+     * Finds a user by their authentication token.
      *
      * @param token the token string
      * @return the associated user, or null if token is invalid
@@ -137,21 +139,51 @@ public class UserService implements IUserService {
         return activeTokens.get(token);
     }
 
+    /**
+     * Retrieves the profile for a given user ID.
+     *
+     * @param userId the user's ID
+     * @param user the user performing the request
+     * @return the profile, or null if user is null
+     */
     @Override
     public Profile getProfile(int userId, User user) {
         if (user == null) return null;
         return userRepository.getProfile(userId);
     }
 
+    /**
+     * Retrieves the favorite media entries for a given user ID.
+     *
+     * @param userId the user's ID
+     * @param user the user performing the request
+     * @return list of favorite MediaEntry, or null if user is null
+     */
     @Override
     public List<MediaEntry> getFavorites(int userId, User user) {
         if (user == null) return null;
         return userRepository.getFavorites(userId);
     }
 
+    /**
+     * Updates a user's profile information.
+     *
+     * @param userId the ID of the user to update
+     * @param email the new email
+     * @param favoritegenre the new favorite genre
+     * @param user the user performing the update
+     * @return true if the update was successful, false otherwise
+     */
     @Override
     public boolean updateProfile(int userId, String email, String favoritegenre, User user) {
         if (user == null || user.getUserid() != userId) return false;
         return userRepository.updateProfile(userId, email, favoritegenre);
+    }
+
+    /**
+     * Resets the singleton instance (for testing purposes).
+     */
+    public static void resetInstance() {
+        instance = null;
     }
 }

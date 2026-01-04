@@ -37,7 +37,7 @@ public class MediaEntryRepository implements IMediaEntryRepository {
      * @return list of all media entries
      */
     @Override
-    public List<MediaEntry> getALlMediaEntries() {
+    public List<MediaEntry> getAllMediaEntries() {
         List<MediaEntry> result = new ArrayList<>();
 
         String sql = """
@@ -58,7 +58,7 @@ public class MediaEntryRepository implements IMediaEntryRepository {
                 mediaEntry.setMediaType(rs.getString("media_type"));
                 mediaEntry.setReleaseYear(rs.getInt("release_year"));
                 mediaEntry.setAgeRestriction(rs.getInt("age_restriction"));
-                mediaEntry.setAvgscore(rs.getInt("avg_score"));
+                mediaEntry.setAvgscore(rs.getDouble("avg_score"));
                 mediaEntry.setCreatorId(rs.getInt("creator"));
 
                 result.add(mediaEntry);
@@ -75,6 +75,7 @@ public class MediaEntryRepository implements IMediaEntryRepository {
      * Adds a new media entry and assigns it a random unique ID.
      *
      * @param mediaEntry the media entry to add
+     * @return true if entry added successfully, false otherwise
      */
     @Override
     public boolean addMediaEntry(MediaEntry mediaEntry) {
@@ -142,10 +143,10 @@ public class MediaEntryRepository implements IMediaEntryRepository {
     }
 
     /**
-     * Deletes a media entry by title and type.
+     * Deletes a media entry by ID.
      *
-     * @param id id of the media
-     * @return
+     * @param id the id of the media
+     * @return true if deleted successfully, false otherwise
      */
     @Override
     public boolean deleteMediaEntry(int id) {
@@ -167,7 +168,7 @@ public class MediaEntryRepository implements IMediaEntryRepository {
      * Finds a media entry by its ID.
      *
      * @param id the ID of the media entry
-     * @return the found media entry
+     * @return the found media entry or null if not found
      */
     @Override
     public MediaEntry getMediaEntryByID(int id) {
@@ -216,7 +217,8 @@ public class MediaEntryRepository implements IMediaEntryRepository {
      * @param genres new genres
      * @param releaseYear new release year
      * @param agerestriction new age restriction
-     * @param creatorId user who wrote the entry
+     * @param creatorId user who created the entry
+     * @return true if update was successful, false otherwise
      */
     @Override
     public boolean updateMediaEntry(int id, String title, String description, String mediatype,
@@ -246,8 +248,9 @@ public class MediaEntryRepository implements IMediaEntryRepository {
     /**
      * Changes the favorite status of a media entry.
      *
-     * @param id the ID of the media entry
-     * @param favorite true to mark as favorite, false otherwise
+     * @param userid the user ID
+     * @param mediaentryid the media entry ID
+     * @return true if operation was successful, false otherwise
      */
     @Override
     public boolean setFavoriteStatus(int userid, int mediaentryid) {
@@ -268,6 +271,13 @@ public class MediaEntryRepository implements IMediaEntryRepository {
         }
     }
 
+    /**
+     * Removes a media entry from user's favorites.
+     *
+     * @param userid the user ID
+     * @param mediaentryid the media entry ID
+     * @return true if operation was successful, false otherwise
+     */
     @Override
     public boolean setUnFavoriteStatus(int userid, int mediaentryid) {
         String sql = "DELETE FROM favorite WHERE userid = ? AND mediaentryid = ?";
@@ -286,6 +296,14 @@ public class MediaEntryRepository implements IMediaEntryRepository {
         }
     }
 
+    /**
+     * Searches and filters media entries by title, genre, and sorting.
+     *
+     * @param title the title filter
+     * @param genre the genre filter
+     * @param sortBy the sort option (title, year, score)
+     * @return list of media entries matching filters
+     */
     @Override
     public List<MediaEntry> searchAndFilterMediaEntries(String title, String genre, String sortBy) {
         StringBuilder sql = new StringBuilder(
@@ -359,6 +377,13 @@ public class MediaEntryRepository implements IMediaEntryRepository {
         return result;
     }
 
+    /**
+     * Searches and filters media entries using multiple filters.
+     *
+     * @param filters map of filters (title, genre, mediaType, releaseYear, ageRestriction)
+     * @param sortBy sort option (title, year, score)
+     * @return list of media entries matching filters
+     */
     @Override
     public List<MediaEntry> fullSearchAndFilterMediaEntries(Map<String, Object> filters, String sortBy) {
         StringBuilder sql = new StringBuilder(
@@ -442,6 +467,12 @@ public class MediaEntryRepository implements IMediaEntryRepository {
         return result;
     }
 
+    /**
+     * Gets media recommendations for a user based on genres of highly rated entries.
+     *
+     * @param userid the user ID
+     * @return list of recommended media entries
+     */
     @Override
     public List<MediaEntry> getRecommendationByGenre(int userid) {
         String sql = "SELECT m.mediaentryid, m.title, m.description, m.media_type, m.release_year, m.age_restriction, m.creator, AVG(r2.stars) AS avg_score, STRING_AGG(DISTINCT g.name, ',') AS genres FROM mediaentry m JOIN mediaentry_genre mg ON m.mediaentryid = mg.mediaentryid LEFT JOIN rating r2 ON m.mediaentryid = r2.mediaentryid LEFT JOIN mediaentry_genre mg3 ON m.mediaentryid = mg3.mediaentryid LEFT JOIN genre g ON mg3.genreid = g.genreid WHERE mg.genreid IN ( SELECT DISTINCT mg2.genreid FROM rating r JOIN mediaentry_genre mg2 ON r.mediaentryid = mg2.mediaentryid WHERE r.creator = ? AND r.stars >= 4 ) AND m.mediaentryid NOT IN ( SELECT mediaentryid FROM rating WHERE creator = ? ) GROUP BY m.mediaentryid, m.title, m.description, m.media_type, m.release_year, m.age_restriction, m.creator ORDER BY avg_score DESC NULLS LAST";
@@ -477,6 +508,12 @@ public class MediaEntryRepository implements IMediaEntryRepository {
         return result;
     }
 
+    /**
+     * Gets media recommendations for a user based on content similarity.
+     *
+     * @param userid the user ID
+     * @return list of recommended media entries
+     */
     @Override
     public List<MediaEntry> getRecommendationByContent(int userid) {
 

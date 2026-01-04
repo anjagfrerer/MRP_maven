@@ -19,32 +19,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * RatingHandler is responsible for handling all HTTP requests related to ratings.
- * For now, it provides methods to add, edit, like, unlike, and delete ratings.
- * In the future, all HTTP requests (GET, POST, PUT, DELETE)
- * will be handled inside the handle() method.
- * The requests will then be passed to a new RatingController
- * which will take care of the main business logic.
+ * Handles HTTP requests for ratings.
+ * It forwards requests to the RatingController for business logic.
  */
-
 public class RatingHandler implements HttpHandler {
     private final IRatingService ratingService;
     private RatingController ratingController;
 
+    /**
+     * Creates a new RatingHandler.
+     *
+     * @param ratingService service used to manage ratings
+     */
     public RatingHandler(RatingService ratingService) {
         this.ratingService = ratingService;
         this.ratingController = RatingController.getInstance(ratingService);
     }
 
     /**
-     * Handles all incoming HTTP requests for ratings. In the future, this method will:
+     * Handles all incoming HTTP requests for ratings.
+     * Authenticates the user and forwards requests to the controller.
      *
-     * Check the HTTP method (GET, POST, PUT, DELETE)
-     * Read request data and headers
-     * Forward the request to the RatingController
-     * Send the controller’s response back to the client
-     *
-     * @param httpExchange the HTTP exchange containing the request and response
+     * @param httpExchange contains the HTTP request and response
      * @throws IOException if an input/output error occurs
      */
     @Override
@@ -84,6 +80,13 @@ public class RatingHandler implements HttpHandler {
                     request.getPathParts().size() > 2 &&
                     request.getPathParts().get(3).equalsIgnoreCase("like")){
                 response = this.ratingController.likeRating(Integer.parseInt(request.getPathParts().get(2)), user);
+            }
+
+            // Delete Rating
+            else if(httpExchange.getRequestMethod().equals(Method.DELETE.name()) &&
+                    request.getPathParts().size() > 2 &&
+                    request.getPathParts().get(3).equalsIgnoreCase("delete")){
+                response = this.ratingController.deleteRating(Integer.parseInt(request.getPathParts().get(2)), user);
             }
 
             // Confirm Rating Comment

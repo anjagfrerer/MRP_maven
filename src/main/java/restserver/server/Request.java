@@ -68,8 +68,10 @@ public class Request {
     }
 
     /**
-     * The method getQueryParams returns the params for postman search & filter
-     * @return
+     * Returns the query parameters from the URI as a map of key-value pairs.
+     *
+     * @param uri the URI containing the query string
+     * @return a map of query parameter names and their values
      */
     public Map<String, String> getQueryParams(URI uri) {
         Map<String, String> params = new HashMap<>();

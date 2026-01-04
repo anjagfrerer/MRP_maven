@@ -14,10 +14,10 @@ public class Controller {
     public Controller() {
         this.objectMapper = new ObjectMapper();
 
-        // JavaTimeModule registrieren, damit LocalDateTime unterstützt wird
+        // Register JavaTimeModule to enable LocalDateTime support
         objectMapper.registerModule(new JavaTimeModule());
 
-        // Verhindert, dass LocalDateTime als Timestamp geschrieben wird
+        // Prevents LocalDateTime from being written Timestamp
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 

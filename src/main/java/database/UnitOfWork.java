@@ -12,7 +12,7 @@ public class UnitOfWork implements AutoCloseable{
         try {
             this.connection.setAutoCommit(false);
         } catch (SQLException e) {
-            throw new DataAccessException("Autocommit nicht deaktivierbar", e);
+            throw new DataAccessException("Autocommit cannot be disabled", e);
         }
     }
 
@@ -22,7 +22,7 @@ public class UnitOfWork implements AutoCloseable{
             try {
                 this.connection.commit();
             } catch (SQLException e) {
-                throw new DataAccessException("Commit der Transaktion nicht erfolgreich", e);
+                throw new DataAccessException("Transaction commit unsuccessful", e);
             }
         }
     }
@@ -32,7 +32,7 @@ public class UnitOfWork implements AutoCloseable{
             try {
                 this.connection.rollback();
             } catch (SQLException e) {
-                throw new DataAccessException("Rollback der Transaktion nicht erfolgreich", e);
+                throw new DataAccessException("Transaction rollback unsuccessful", e);
             }
         }
     }
@@ -44,7 +44,7 @@ public class UnitOfWork implements AutoCloseable{
                 this.connection.close();
                 this.connection = null;
             } catch (SQLException e) {
-                throw new DataAccessException("Schließen der Connection nicht erfolgreich", e);
+                throw new DataAccessException("Connection closure failed", e);
             }
         }
     }
@@ -55,10 +55,10 @@ public class UnitOfWork implements AutoCloseable{
             try {
                 return this.connection.prepareStatement(sql);
             } catch (SQLException e) {
-                throw new DataAccessException("Erstellen eines PreparedStatements nicht erfolgreich", e);
+                throw new DataAccessException("Creating a PreparedStatement was unsuccessful", e);
             }
         }
-        throw new DataAccessException("UnitOfWork hat keine aktive Connection zur Verfügung");
+        throw new DataAccessException("UnitOfWork has no active connection available");
     }
 
     @Override

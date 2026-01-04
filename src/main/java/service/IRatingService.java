@@ -4,7 +4,6 @@ import model.MediaEntry;
 import model.Rating;
 import model.User;
 import dto.RatingHistoryDTO;
-
 import java.util.List;
 
 /**
@@ -17,4 +16,5 @@ public interface IRatingService {
     boolean updateRating(int mediaentryid, int stars, String comment, User user);
     List<RatingHistoryDTO> getRatingHistory(int userId, User user);
     boolean confirmRatingComment(int ratingid, User user);
+    boolean deleteRating(int ratingid, User user);
 }

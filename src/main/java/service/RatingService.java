@@ -1,17 +1,15 @@
 package service;
 
 import dto.RatingHistoryDTO;
-import model.Rating;
 import model.User;
 import persistence.IRatingRepository;
-import persistence.RatingRepository;
 
 import java.util.List;
 
 
 /**
  * Service class for managing ratings of media entries.
- * Provides methods to add, edit, delete, like, and unlike ratings.
+ * Provides methods to add, edit, delete, like, and confirm ratings.
  */
 public class RatingService implements IRatingService {
     private static RatingService instance;
@@ -30,7 +28,7 @@ public class RatingService implements IRatingService {
      * Returns the single instance of RatingService.
      *
      * @param ratingRepository the repository used to store ratings
-     * @return the instance
+     * @return the singleton instance
      */
     public static RatingService getInstance(IRatingRepository ratingRepository) {
         if (instance == null) instance = new RatingService(ratingRepository);
@@ -40,59 +38,96 @@ public class RatingService implements IRatingService {
     /**
      * Adds a like from a user to a rating.
      *
+     * @param ratingId the ID of the rating to like
      * @param user the user who likes the rating
-     * @param ratingID the ID of the rating to like
+     * @return true if the like is added, false if user has already liked or user is null
      */
     @Override
-    public boolean likeRating(int ratingid, User user) {
-        if(user == null) return false;
-        return this.ratingRepository.likeRating(ratingid, user);
+    public boolean likeRating(int ratingId, User user) {
+        if (user == null) return false;
+        if (ratingRepository.hasUserLikedRating(ratingId, user.getUserid())) {
+            return false;
+        }
+        return ratingRepository.likeRating(ratingId, user);
     }
-
-    /**
-     * Removes a like from a user on a rating.
-     *
-     * @param user the user who unlikes the rating
-     * @param ratingID the ID of the rating to unlike
-     */
-
-    /**
-     * Deletes a rating by its ID.
-     *
-     * @param ratingID the ID of the rating to delete
-     */
 
     /**
      * Adds a new rating for a media entry.
      *
-     * @param user the creator of the rating
-     * @param stars number of stars
+     * @param mediaentryid the ID of the media entry being rated
+     * @param stars number of stars (1-5)
      * @param comment optional comment
-     * @param mediaEntry the media entry being rated
+     * @param user the creator of the rating
+     * @return true if rating is added successfully, false otherwise
      */
     @Override
     public boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user) {
-        if(user == null || stars <= 0 || stars > 5 || comment.isEmpty()) return false;
+        if(user == null || stars <= 0 || stars > 5) return false;
         return this.ratingRepository.rateMediaEntry(mediaentryid, stars, comment, user);
     }
 
+    /**
+     * Updates an existing rating.
+     *
+     * @param mediaentryid the ID of the media entry
+     * @param stars updated number of stars (1-5)
+     * @param comment updated comment
+     * @param user the user performing the update
+     * @return true if the update is successful, false otherwise
+     */
     @Override
     public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
-        if(user == null || stars <= 0 || stars > 5 || comment.isEmpty()) return false;
+        if(user == null || stars <= 0 || stars > 5) return false;
         return this.ratingRepository.updateRating(mediaentryid, stars, comment, user);
     }
 
+    /**
+     * Returns the rating history of a user.
+     *
+     * @param userId the ID of the user
+     * @param user the user performing the request
+     * @return list of RatingHistoryDTO or null if user is invalid
+     */
     @Override
     public List<RatingHistoryDTO> getRatingHistory(int userId, User user) {
         if(user==null || userId != user.getUserid()) return null;
         return ratingRepository.getRatingHistory(userId, user);
     }
 
+    /**
+     * Confirms a rating comment
+     *
+     * @param ratingid the ID of the rating
+     * @param user the user performing the confirmation
+     * @return true if confirmation is successful, false otherwise
+     */
     @Override
     public boolean confirmRatingComment(int ratingid, User user) {
         if(user==null) return false;
         if(ratingRepository.getRatingById(ratingid)==null) return false;
         if(ratingRepository.getRatingById(ratingid).getCreatorId() != user.getUserid()) return false;
         return ratingRepository.confirmRatingComment(ratingid);
+    }
+
+    /**
+     * Deletes a rating.
+     *
+     * @param ratingid the ID of the rating to delete
+     * @param user the user performing the deletion
+     * @return true if deletion is successful, false otherwise
+     */
+    @Override
+    public boolean deleteRating(int ratingid, User user) {
+        if(user==null) return false;
+        if(ratingRepository.getRatingById(ratingid)==null) return false;
+        if(ratingRepository.getRatingById(ratingid).getCreatorId() != user.getUserid()) return false;
+        return ratingRepository.deleteRating(ratingid);
+    }
+
+    /**
+     * Resets the singleton instance (for testing purposes).
+     */
+    public static void resetInstance() {
+        instance = null;
     }
 }

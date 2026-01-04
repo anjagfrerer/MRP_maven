@@ -5,8 +5,7 @@ import java.util.List;
 
 /**
  * Represents a user of the application.
- * A user has an ID, username, password, a list of favorite media,
- * ratings they created, and an interaction counter for ranking activity.
+ * Stores user ID, username, password, total ratings, and average score.
  */
 public class User {
     private int userid;

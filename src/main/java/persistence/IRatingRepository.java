@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * Interface for managing ratings in the repository.
- * Provides methods to create, edit, delete, and like ratings.
+ * Provides methods to add, update, delete, like, and fetch ratings and rating history.
  */
 public interface IRatingRepository {
     boolean likeRating(int ratingid, User user);
@@ -21,4 +21,6 @@ public interface IRatingRepository {
     List<RatingHistoryDTO> getRatingHistory(int userId, User user);
     Rating getRatingById(int ratingid);
     boolean confirmRatingComment(int ratingid);
+    boolean deleteRating(int ratingid);
+    boolean hasUserLikedRating(int ratingId, int userId);
 }
