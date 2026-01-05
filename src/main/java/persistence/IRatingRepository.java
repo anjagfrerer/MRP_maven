@@ -17,7 +17,7 @@ import java.util.Map;
 public interface IRatingRepository {
     boolean likeRating(int ratingid, User user);
     boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user);
-    boolean updateRating(int mediaentryid, int stars, String comment, User user);
+    boolean updateRating(int ratingid, int stars, String comment, User user);
     List<RatingHistoryDTO> getRatingHistory(int userId, User user);
     Rating getRatingById(int ratingid);
     boolean confirmRatingComment(int ratingid);

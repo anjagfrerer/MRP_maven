@@ -336,7 +336,9 @@ public class MediaEntryRepository implements IMediaEntryRepository {
                 case "title" -> sql.append(" ORDER BY m.title");
                 case "year" -> sql.append(" ORDER BY m.release_year");
                 case "score" -> sql.append(" ORDER BY avg_score DESC");
-                default -> throw new IllegalArgumentException("Invalid sortBy");
+                default -> {
+                    return null;
+                }
             }
         }
 
@@ -372,6 +374,7 @@ public class MediaEntryRepository implements IMediaEntryRepository {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
 
         return result;
@@ -427,7 +430,9 @@ public class MediaEntryRepository implements IMediaEntryRepository {
                 case "title" -> sql.append(" ORDER BY m.title");
                 case "year" -> sql.append(" ORDER BY m.release_year");
                 case "score" -> sql.append(" ORDER BY avg_score DESC");
-                default -> throw new IllegalArgumentException("Invalid sortBy");
+                default -> {
+                    return null;
+                }
             }
         }
 

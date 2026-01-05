@@ -68,6 +68,21 @@ public class RatingRepository implements IRatingRepository {
      */
     @Override
     public boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user) {
+        // Check ob User den MediaEntry schon bewertet hat
+        String checkSql = "SELECT 1 FROM rating WHERE mediaentryid = ? AND creator = ?";
+        try (Connection connection = DatabaseManager.INSTANCE.getConnection();
+             PreparedStatement checkPs = connection.prepareStatement(checkSql)) {
+            checkPs.setInt(1, mediaentryid);
+            checkPs.setInt(2, user.getUserid());
+            ResultSet rs = checkPs.executeQuery();
+            if (rs.next()) {
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
         String sql = "INSERT INTO rating (mediaentryid, stars, comment, creator) VALUES (?, ?, ?, ?)";
         try (Connection connection = DatabaseManager.INSTANCE.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -87,20 +102,20 @@ public class RatingRepository implements IRatingRepository {
     /**
      * Updates an existing rating.
      *
-     * @param mediaentryid the ID of the media entry
+     * @param ratingid the ID of the rating
      * @param stars new number of stars
      * @param comment new comment
      * @param user the user who created the rating
      * @return true if update was successful, false otherwise
      */
     @Override
-    public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
-        String sql = "UPDATE rating SET stars = ?, comment = ? WHERE mediaentryid = ? AND creator = ?";
+    public boolean updateRating(int ratingid, int stars, String comment, User user) {
+        String sql = "UPDATE rating SET stars = ?, comment = ? WHERE ratingid = ? AND creator = ?";
         try (Connection connection = DatabaseManager.INSTANCE.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, stars);
             ps.setString(2, comment);
-            ps.setInt(3, mediaentryid);
+            ps.setInt(3, ratingid);
             ps.setInt(4, user.getUserid());
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {

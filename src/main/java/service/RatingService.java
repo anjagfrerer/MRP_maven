@@ -69,16 +69,16 @@ public class RatingService implements IRatingService {
     /**
      * Updates an existing rating.
      *
-     * @param mediaentryid the ID of the media entry
+     * @param ratingid the ID of the rating
      * @param stars updated number of stars (1-5)
      * @param comment updated comment
      * @param user the user performing the update
      * @return true if the update is successful, false otherwise
      */
     @Override
-    public boolean updateRating(int mediaentryid, int stars, String comment, User user) {
+    public boolean updateRating(int ratingid, int stars, String comment, User user) {
         if(user == null || stars <= 0 || stars > 5) return false;
-        return this.ratingRepository.updateRating(mediaentryid, stars, comment, user);
+        return this.ratingRepository.updateRating(ratingid, stars, comment, user);
     }
 
     /**

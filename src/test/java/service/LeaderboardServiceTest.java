@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import static org.mockito.Mockito.*;
 
-class LeaderboardControllerTest {
+class LeaderboardServiceTest {
 
     private ILeaderboardService leaderboardService;
     private LeaderboardController leaderboardController;
@@ -33,17 +33,13 @@ class LeaderboardControllerTest {
 
     @Test
     void testGetLeaderboardReturnsProfiles() throws Exception {
-        // Arrange: Beispiel-Daten
         Profile user1 = new Profile(1, "alice", 3, 3.7, "thriller", "alice@gmail.com");
         Profile user2 = new Profile(2, "bob", 7, 4.7, "fantasy", "bob@gmail.com");
         List<Profile> mockLeaderboard = Arrays.asList(user1, user2);
-
         when(leaderboardService.getLeaderboard()).thenReturn(mockLeaderboard);
 
-        // Act
         Response response = leaderboardController.getLeaderboard();
 
-        // Assert: HTTP Status und Content-Type
         assertEquals(HttpStatus.OK.code, response.getStatus());
         assertEquals(ContentType.JSON.type, response.getContentType());
 

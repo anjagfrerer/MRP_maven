@@ -111,15 +111,15 @@ public class RatingController extends Controller{
     /**
      * Updates an existing rating.
      *
-     * @param mediaentryid ID of the media entry
+     * @param ratingid ID of the rating
      * @param requestBody JSON data with updated rating
      * @param user the user who updates the rating
      * @return HTTP response with success or error message
      */
-    public Response updateRating(int mediaentryid, String requestBody, User user) {
+    public Response updateRating(int ratingid, String requestBody, User user) {
         try {
             Rating rating = this.getObjectMapper().readValue(requestBody, Rating.class);
-            boolean success = ratingService.updateRating(mediaentryid, rating.getStars(), rating.getComment(), user);
+            boolean success = ratingService.updateRating(ratingid, rating.getStars(), rating.getComment(), user);
 
             if(success) {
                 return new Response(

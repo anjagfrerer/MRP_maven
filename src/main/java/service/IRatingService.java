@@ -13,7 +13,7 @@ import java.util.List;
 public interface IRatingService {
     boolean likeRating(int ratingid, User user);
     boolean rateMediaEntry(int mediaentryid, int stars, String comment, User user);
-    boolean updateRating(int mediaentryid, int stars, String comment, User user);
+    boolean updateRating(int ratingid, int stars, String comment, User user);
     List<RatingHistoryDTO> getRatingHistory(int userId, User user);
     boolean confirmRatingComment(int ratingid, User user);
     boolean deleteRating(int ratingid, User user);

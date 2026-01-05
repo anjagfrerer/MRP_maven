@@ -164,7 +164,7 @@ public class UserRepository implements IUserRepository {
      */
     @Override
     public List<MediaEntry> getFavorites(int userId) {
-        String sql = "SELECT m.mediaentryid, m.title, m.description, m.media_type, m.release_year, m.age_restriction, AVG(r.stars) AS avg_score, STRING_AGG(DISTINCT g.name, ',') AS genres FROM mediaentry m JOIN favorite f ON m.mediaentryid = f.mediaentryid LEFT JOIN mediaentry_genre mg ON mg.mediaentryid = m.mediaentryid LEFT JOIN genre g ON mg.genreid = g.genreid LEFT JOIN rating r ON m.mediaentryid = r.mediaentryid WHERE f.userid = ? GROUP BY m.mediaentryid";
+        String sql = "SELECT m.mediaentryid, m.title, m.description, m.media_type, m.release_year, m.creator, m.age_restriction, AVG(r.stars) AS avg_score, STRING_AGG(DISTINCT g.name, ',') AS genres FROM mediaentry m JOIN favorite f ON m.mediaentryid = f.mediaentryid LEFT JOIN mediaentry_genre mg ON mg.mediaentryid = m.mediaentryid LEFT JOIN genre g ON mg.genreid = g.genreid LEFT JOIN rating r ON m.mediaentryid = r.mediaentryid WHERE f.userid = ? GROUP BY m.mediaentryid";
         List<MediaEntry> favorites = new ArrayList<>();
         try(Connection conn = DatabaseManager.INSTANCE.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -180,6 +180,7 @@ public class UserRepository implements IUserRepository {
                     mediaEntry.setReleaseYear(rs.getInt("release_year"));
                     mediaEntry.setAgeRestriction(rs.getInt("age_restriction"));
                     mediaEntry.setAvgscore(rs.getInt("avg_score"));
+                    mediaEntry.setCreatorId(rs.getInt("creator"));
 
                     // Genres als List setzen
                     String genresStr = rs.getString("genres");

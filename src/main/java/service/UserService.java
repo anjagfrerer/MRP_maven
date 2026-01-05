@@ -75,6 +75,10 @@ public class UserService implements IUserService {
      */
     @Override
     public boolean registerUser(String username, String password) {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            return false;
+        }
+
         List<User> allUsers = userRepository.getAllUsers();
         for (User u : allUsers) {
             if (u.getUsername().equals(username)) {

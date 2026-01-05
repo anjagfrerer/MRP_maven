@@ -47,11 +47,28 @@ class MediaEntryServiceTest {
     @Test
     void testAddMediaEntry() {
         when(repository.addMediaEntry(mediaEntry)).thenReturn(true);
-
         boolean result = service.addMediaEntry(mediaEntry, user);
-
         assertTrue(result, "MediaEntry should be added successfully");
         verify(repository).addMediaEntry(mediaEntry);
+    }
+
+    @Test
+    void testAddMediaEntryNullEntry() {
+        boolean result = service.addMediaEntry(null, user);
+        assertFalse(result, "Adding null media entry should fail");
+    }
+
+    @Test
+    void testAddMediaEntryNullUser() {
+        boolean result = service.addMediaEntry(mediaEntry, null);
+        assertFalse(result, "Adding media entry with null user should fail");
+    }
+
+    @Test
+    void testAddMediaEntryRepositoryFailure() {
+        when(repository.addMediaEntry(mediaEntry)).thenReturn(false);
+        boolean result = service.addMediaEntry(mediaEntry, user);
+        assertFalse(result, "Repository failure should result in false");
     }
 
     @Test
@@ -96,6 +113,31 @@ class MediaEntryServiceTest {
     }
 
     @Test
+    void testEditMediaEntryNonExistentId() {
+        when(repository.getMediaEntryByID(99)).thenReturn(null);
+        boolean result = service.editMediaEntry(99, mediaEntry, user);
+        assertFalse(result, "Editing non-existent media entry should fail");
+    }
+
+    @Test
+    void testEditMediaEntryNullUser() {
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+        boolean result = service.editMediaEntry(1, mediaEntry, null);
+        assertFalse(result, "Editing with null user should fail");
+    }
+
+    @Test
+    void testEditMediaEntryRepositoryFailure() {
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+        when(repository.updateMediaEntry(
+                anyInt(), anyString(), anyString(), anyString(), anyList(), anyInt(), anyInt(), anyInt()))
+                .thenReturn(false);
+
+        boolean result = service.editMediaEntry(1, mediaEntry, user);
+        assertFalse(result, "Repository update failure should return false");
+    }
+
+    @Test
     void testDeleteMediaEntry() {
         when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
         when(repository.deleteMediaEntry(1)).thenReturn(true);
@@ -104,6 +146,32 @@ class MediaEntryServiceTest {
 
         assertTrue(result, "Creator should be able to delete MediaEntry");
         verify(repository).deleteMediaEntry(1);
+    }
+
+    @Test
+    void testDeleteMediaEntryNonExistent() {
+        when(repository.getMediaEntryByID(99)).thenReturn(null);
+        boolean result = service.deleteMediaEntry(99, user);
+        assertFalse(result, "Deleting non-existent media entry should fail");
+    }
+
+    @Test
+    void testDeleteMediaEntryNonCreator() {
+        User otherUser = new User();
+        otherUser.setUserid(2);
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+
+        boolean result = service.deleteMediaEntry(1, otherUser);
+        assertFalse(result, "Non-creator should not be able to delete");
+    }
+
+    @Test
+    void testDeleteMediaEntryRepositoryFailure() {
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+        when(repository.deleteMediaEntry(1)).thenReturn(false);
+
+        boolean result = service.deleteMediaEntry(1, user);
+        assertFalse(result, "Repository failure should result in false");
     }
 
     @Test
@@ -120,6 +188,29 @@ class MediaEntryServiceTest {
     }
 
     @Test
+    void testFavoriteNonExistentMedia() {
+        when(repository.getMediaEntryByID(99)).thenReturn(null);
+        boolean result = service.favoriteMediaEntry(99, user);
+        assertFalse(result, "Favoriting non-existent media should fail");
+    }
+
+    @Test
+    void testFavoriteNullUser() {
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+        boolean result = service.favoriteMediaEntry(1, null);
+        assertFalse(result, "Favoriting with null user should fail");
+    }
+
+    @Test
+    void testFavoriteRepositoryFailure() {
+        when(repository.getMediaEntryByID(1)).thenReturn(mediaEntry);
+        when(repository.setFavoriteStatus(user.getUserid(), 1)).thenReturn(false);
+
+        boolean result = service.favoriteMediaEntry(1, user);
+        assertFalse(result, "Repository failure should result in false");
+    }
+
+    @Test
     void testSearchAndFilterMediaEntries() {
         List<MediaEntry> list = new ArrayList<>();
         list.add(mediaEntry);
@@ -130,6 +221,20 @@ class MediaEntryServiceTest {
 
         assertEquals(1, result.size(), "Search should return 1 media entry");
         assertEquals("Test Movie", result.get(0).getTitle());
+    }
+
+    @Test
+    void testSearchNoResults() {
+        when(repository.searchAndFilterMediaEntries("Unknown", "Action", "title")).thenReturn(new ArrayList<>());
+        List<MediaEntry> result = service.searchAndFilterMediaEntries("Unknown", "Action", "title");
+        assertTrue(result.isEmpty(), "Search with no results should return empty list");
+    }
+
+    @Test
+    void testSearchNullParameters() {
+        when(repository.searchAndFilterMediaEntries(null, null, null)).thenReturn(List.of(mediaEntry));
+        List<MediaEntry> result = service.searchAndFilterMediaEntries(null, null, null);
+        assertEquals(1, result.size(), "Null search params should not fail");
     }
 
     @Test
@@ -145,5 +250,27 @@ class MediaEntryServiceTest {
 
         assertEquals(1, genreRec.size(), "Genre recommendation should return 1 entry");
         assertEquals(1, contentRec.size(), "Content recommendation should return 1 entry");
+    }
+
+    @Test
+    void testRecommendationEmpty() {
+        when(repository.getRecommendationByGenre(user.getUserid())).thenReturn(new ArrayList<>());
+        when(repository.getRecommendationByContent(user.getUserid())).thenReturn(new ArrayList<>());
+
+        List<MediaEntry> genreRec = service.getRecommendationByGenre(user.getUserid(), user);
+        List<MediaEntry> contentRec = service.getRecommendationByContent(user.getUserid(), user);
+
+        assertTrue(genreRec.isEmpty(), "Empty genre recommendations should return empty list");
+        assertTrue(contentRec.isEmpty(), "Empty content recommendations should return empty list");
+    }
+
+    @Test
+    void testRecommendationNullUser() {
+        List<MediaEntry> genreRec = service.getRecommendationByGenre(user.getUserid(), null);
+        List<MediaEntry> contentRec = service.getRecommendationByContent(user.getUserid(), null);
+
+        assertTrue(genreRec == null || genreRec.isEmpty(), "Null user should result in empty genre recommendations");
+        assertTrue(contentRec == null || contentRec.isEmpty(), "Null user should result in empty content recommendations");
+
     }
 }
